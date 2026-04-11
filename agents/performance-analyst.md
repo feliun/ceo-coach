@@ -25,6 +25,7 @@ subagent_type: general-purpose
 | `meetings_folder` | Relative path from vault_root to meeting notes (default: `meetings/`) |
 | `daily_logs_folder` | Relative path from vault_root to daily logs (default: `logs/daily/`) |
 | `tasks_source` | Where to fetch tasks from (default: `asana`) |
+| `company_notes_folder` | Relative path from vault_root to company notes (default: `wiki/company/`) |
 
 ---
 
@@ -69,6 +70,18 @@ List daily log files in `{vault_root}/{daily_logs_folder}` for dates in the wind
 - Check whether it exists
 - Brief summary if present (first few lines after briefing section)
 
+### 6. Fleeting Thoughts
+
+Collect raw thinking and ideas generated during the window from two sources:
+
+**a) Journaling sections from daily notes**
+In each daily log (`{vault_root}/{daily_logs_folder}/DD-MM-YYYY.md`), extract the full content under the `# Journaling` and `# Free thinking` headings (both H1). For each, stop at the next H1 heading. Skip if the section is empty.
+
+**b) Company notes**
+List files in `{vault_root}/wiki/company/` whose filename date falls within the window (filename format: `YYYY-MM-DD <title>.md`). For each:
+- Title (from filename or H1 heading)
+- Full content (these are typically short, idea-level notes)
+
 ---
 
 ## Output
@@ -105,6 +118,11 @@ Window: {start_date} → {end_date} ({N} days)
 - Logs found: N of {window_days}
 - Missing dates: [list]
 
+### Fleeting Thoughts
+- Journaling entries: N (from daily notes)
+- Company notes: N
+- Entries: [{date, source, title (if company note), content}]
+
 ### Sources
 | Source | Status | Details |
 |--------|--------|---------|
@@ -113,6 +131,7 @@ Window: {start_date} → {end_date} ({N} days)
 | Tasks | ✅ / ⚠️ | |
 | Meeting Notes | ✅ / ⚠️ | |
 | Daily Logs | ✅ / ⚠️ | |
+| Fleeting Thoughts | ✅ / ⚠️ | |
 ```
 
 ---
