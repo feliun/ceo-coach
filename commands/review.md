@@ -84,7 +84,10 @@ Window: {window parameter} ({start date} → {end date})
 {from delegation-tracker skill}
 
 ## Fleeting Thoughts
-{from performance-analyst — raw fleeting thoughts captured during the window}
+{from performance-analyst fleeting thoughts data — list all journaling entries,
+free thinking entries, and company notes from the window. Group by date.
+Include the full content of each entry. If none found, note "No fleeting thoughts
+captured this period." and flag as a reflection gap.}
 
 ## Refocus Directive
 {from refocus-directive skill}
