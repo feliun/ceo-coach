@@ -41,6 +41,7 @@ Dispatch the `performance-analyst` agent (see `agents/performance-analyst.md`) t
 - Tasks completed and overdue in the window
 - Meeting notes from the window
 - Daily logs from the window
+- Fleeting thoughts from the window
 
 #### 4. Run performance scorecard
 
@@ -81,6 +82,9 @@ Window: {window parameter} ({start date} → {end date})
 
 ## Delegation Review
 {from delegation-tracker skill}
+
+## Fleeting Thoughts
+{from performance-analyst — raw fleeting thoughts captured during the window}
 
 ## Refocus Directive
 {from refocus-directive skill}
