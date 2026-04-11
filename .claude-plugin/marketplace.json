@@ -1,0 +1,16 @@
+{
+  "name": "ceo-coach",
+  "description": "CEO Coach — direct, evidence-based performance advisor",
+  "owner": {
+    "name": "Felipe Polo",
+    "url": "https://github.com/feliun"
+  },
+  "plugins": [
+    {
+      "name": "ceo-coach",
+      "source": ".",
+      "description": "Direct, evidence-based CEO performance advisor. Analyzes actual behavior against stated priorities and calls out drift.",
+      "version": "1.0.0"
+    }
+  ]
+}
