@@ -1,0 +1,29 @@
+# Quarterly Rocks — your objectives for the current quarter.
+# Copy this file to your config path (see manifest.yaml) and customize.
+
+quarter: "Q2 2026"
+period: "2026-04-01 to 2026-06-30"
+
+rocks:
+  - name: "Example Rock 1"
+    weight: 40
+    status: on-track   # on-track, at-risk, off-track, done
+    key_results:
+      - description: "KR1 description"
+        status: in-progress   # not-started, in-progress, done
+      - description: "KR2 description"
+        status: not-started
+
+  - name: "Example Rock 2"
+    weight: 30
+    status: on-track
+    key_results:
+      - description: "KR1 description"
+        status: in-progress
+
+  - name: "Example Rock 3"
+    weight: 30
+    status: at-risk
+    key_results:
+      - description: "KR1 description"
+        status: not-started

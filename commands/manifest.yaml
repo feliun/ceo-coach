@@ -1,0 +1,64 @@
+# =============================================================================
+# CEO Coach — Config Manifest
+# =============================================================================
+#
+# Config registry for the ceo-coach command suite.
+# The manifest-resolver skill reads this file to locate config files.
+#
+# Paths are relative to the project root. The resolver expands them to
+# absolute paths at runtime.
+# =============================================================================
+
+ceo-coach:
+  rocks:
+    description: "Quarterly objectives — rocks, KRs, weights, status"
+    paths:
+      - system/memory/config/rocks.yaml
+      - config/rocks.yaml
+      - ~/.claude/ceo-coach/rocks.yaml
+    required: true
+    format: yaml
+
+  calendar-rules:
+    description: "Scheduling rules and compliance targets"
+    paths:
+      - system/memory/principles/Calendar rules.md
+      - config/calendar-rules.yaml
+      - ~/.claude/ceo-coach/calendar-rules.yaml
+    required: false
+    format: yaml
+
+  delegation-log:
+    description: "Running delegation pattern log"
+    paths:
+      - system/memory/config/delegation-log.yaml
+      - config/delegation-log.yaml
+    required: false
+    format: yaml
+
+  leadership-framework:
+    description: "CEO model — hats, time targets, constraint theory"
+    paths:
+      - agents/ceo-coach/references/leadership-framework.md
+      - references/leadership-framework.md
+      - ~/.claude/ceo-coach/leadership-framework.md
+    required: false
+    format: markdown
+
+  values:
+    description: "Core philosophy, professional values, decision-making priorities"
+    paths:
+      - system/memory/principles/My values.md
+      - references/values.md
+      - ~/.claude/ceo-coach/values.md
+    required: false
+    format: markdown
+
+  thinking-style:
+    description: "Decision framework, biases, depth calibration, disagreement protocol"
+    paths:
+      - system/memory/principles/How to think with me.md
+      - references/thinking-style.md
+      - ~/.claude/ceo-coach/thinking-style.md
+    required: false
+    format: markdown

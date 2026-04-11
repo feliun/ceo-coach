@@ -1,0 +1,36 @@
+# Calendar Rules — your scheduling principles and compliance targets.
+# Copy this file to your config path (see manifest.yaml) and customize.
+
+rules:
+  meeting_free_days:
+    description: "Days with zero external meetings"
+    days: [monday, friday]
+
+  morning_rule:
+    description: "No meetings before this time"
+    cutoff: "14:00"
+    exceptions: ["self-blocks", "personal appointments"]
+
+  max_meetings_per_day:
+    description: "Flag days exceeding this count"
+    limit: 3
+
+  max_meeting_hours_per_week:
+    description: "Total meeting hours ceiling"
+    limit: 6
+
+  protected_blocks:
+    description: "Recurring blocks that must not be overridden"
+    blocks:
+      # - name: "Strategy Block"
+      #   day: monday
+      #   time: "09:00-12:00"
+      # - name: "Deep Think"
+      #   day: thursday
+      #   time: "09:00-12:00"
+
+  delegated_meetings:
+    description: "Meetings you should NOT attend (delegated to someone)"
+    meetings: []
+    # - title_contains: "standup"
+    #   delegated_to: "Tech Lead"

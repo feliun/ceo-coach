@@ -1,0 +1,19 @@
+# Delegation Log — tracking delegation patterns over time.
+# This file is auto-populated by the delegation-tracker skill.
+# Copy this file to your config path (see manifest.yaml) to start fresh.
+
+# Items that keep recurring (not yet delegated)
+recurring: []
+  # - item: "Reviewed all inbound partnership emails"
+  #   first_seen: 2026-03-06
+  #   weeks_logged:
+  #     - 2026-03-06
+  #     - 2026-03-13
+  #   streak: 2
+
+# Items that were successfully delegated
+delegated: []
+  # - item: "Wrote social media copy for launches"
+  #   delegated_to: "Maria"
+  #   handoff_date: 2026-03-20
+  #   escalated_from_streak: 3
