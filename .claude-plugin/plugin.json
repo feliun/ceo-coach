@@ -1,6 +1,6 @@
 {
   "name": "ceo-coach",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Direct, evidence-based CEO performance advisor. Analyzes actual behavior against stated priorities and calls out drift.",
   "author": {
     "name": "Felipe Polo"

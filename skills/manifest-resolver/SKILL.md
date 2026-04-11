@@ -31,14 +31,16 @@ or any future location — without modifying plugin code.
 2. **Select the domain** from the calling command's namespace (e.g., `ceo-coach:review` → domain `ceo-coach`)
 3. **For each config key** in that domain:
    a. Iterate through the `paths` array in order
-   b. Expand `~` to the user's home directory
-   c. Resolve relative paths against the project root
-   d. **Check existence:**
+   b. **Expand path tokens:**
+      - `$WORKSPACE` → the user's primary working directory (where Claude Code is running, shown in the environment context as "Primary working directory")
+      - `~` → the user's home directory
+      - Bare relative paths → resolve against the plugin's own root directory
+   c. **Check existence:**
       - For `format: directory` → check the directory exists AND contains at least one file matching the expected pattern (`.md` for contacts)
       - For `format: yaml` or `format: markdown` → check the file exists and is readable
-   e. **Return the first match** as the resolved path
-   f. If no path matches and `required: true` → flag as ❌ with fix instructions
-   g. If no path matches and `required: false` → flag as ⚠️ optional, skip
+   d. **Return the first match** as the resolved path
+   e. If no path matches and `required: true` → flag as ❌ with fix instructions
+   f. If no path matches and `required: false` → flag as ⚠️ optional, skip
 
 ## Output
 

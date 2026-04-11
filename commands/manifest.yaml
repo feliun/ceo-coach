@@ -5,15 +5,19 @@
 # Config registry for the ceo-coach command suite.
 # The manifest-resolver skill reads this file to locate config files.
 #
-# Paths are relative to the project root. The resolver expands them to
-# absolute paths at runtime.
+# Path tokens:
+#   $WORKSPACE  — the user's working directory (where Claude Code is running)
+#   ~           — the user's home directory
+#   (bare path) — relative to the plugin's own root directory
+#
+# The resolver expands tokens and checks paths in order (first match wins).
 # =============================================================================
 
 ceo-coach:
   rocks:
     description: "Quarterly objectives — rocks, KRs, weights, status"
     paths:
-      - system/memory/config/rocks.yaml
+      - $WORKSPACE/system/memory/config/rocks.yaml
       - config/rocks.yaml
       - ~/.claude/ceo-coach/rocks.yaml
     required: true
@@ -22,7 +26,7 @@ ceo-coach:
   calendar-rules:
     description: "Scheduling rules and compliance targets"
     paths:
-      - system/memory/principles/Calendar rules.md
+      - $WORKSPACE/system/memory/principles/Calendar rules.md
       - config/calendar-rules.yaml
       - ~/.claude/ceo-coach/calendar-rules.yaml
     required: false
@@ -31,7 +35,7 @@ ceo-coach:
   delegation-log:
     description: "Running delegation pattern log"
     paths:
-      - system/memory/config/delegation-log.yaml
+      - $WORKSPACE/system/memory/config/delegation-log.yaml
       - config/delegation-log.yaml
     required: false
     format: yaml
@@ -39,7 +43,7 @@ ceo-coach:
   leadership-framework:
     description: "CEO model — hats, time targets, constraint theory"
     paths:
-      - agents/ceo-coach/references/leadership-framework.md
+      - $WORKSPACE/agents/ceo-coach/references/leadership-framework.md
       - references/leadership-framework.md
       - ~/.claude/ceo-coach/leadership-framework.md
     required: false
@@ -48,7 +52,7 @@ ceo-coach:
   values:
     description: "Core philosophy, professional values, decision-making priorities"
     paths:
-      - system/memory/principles/My values.md
+      - $WORKSPACE/system/memory/principles/My values.md
       - references/values.md
       - ~/.claude/ceo-coach/values.md
     required: false
@@ -57,7 +61,7 @@ ceo-coach:
   thinking-style:
     description: "Decision framework, biases, depth calibration, disagreement protocol"
     paths:
-      - system/memory/principles/How to think with me.md
+      - $WORKSPACE/system/memory/principles/How to think with me.md
       - references/thinking-style.md
       - ~/.claude/ceo-coach/thinking-style.md
     required: false
