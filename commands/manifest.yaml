@@ -58,6 +58,14 @@ ceo-coach:
     required: false
     format: markdown
 
+  quarterly-plan:
+    description: "Directory containing quarterly execution plans — monthly targets, exit criteria, key activities"
+    paths:
+      - $WORKSPACE/logs/quarterly/
+    required: false
+    format: directory
+    note: "The plan command resolves to the file matching the current quarter from rocks.yaml (e.g., Q2-2026 → q2-2026.md)"
+
   thinking-style:
     description: "Decision framework, biases, depth calibration, disagreement protocol"
     paths:
