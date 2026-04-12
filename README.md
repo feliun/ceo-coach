@@ -13,6 +13,7 @@ CEO Coach is a performance mirror for founders and executives. It gathers data f
 | `/review` | Performance review for a configurable time window. Scores CEO effectiveness, audits calendar, tracks delegation, produces a refocus directive. |
 | `/reflect` | Guided reflection on a specific decision, event, or meeting. Reads context and asks hard questions. |
 | `/goals` | Review and update quarterly objectives (rocks). Check alignment between stated priorities and actual time allocation. |
+| `/plan` | Generate a weekly execution plan. Cross-references quarterly objectives, calendar availability, Asana tasks, and calendar rules to produce a day-by-day schedule with task assignments mapped to protected blocks and hat targets. |
 
 ## Skills
 
@@ -29,6 +30,7 @@ CEO Coach is a performance mirror for founders and executives. It gathers data f
 | Agent | Description |
 |-------|-------------|
 | `performance-analyst` | Gathers behavioral data (calendar, email, tasks, meetings) for a review window. |
+| `week-planner` | Gathers calendar events, Asana tasks, and prior week's review/plan for weekly planning. |
 
 ## Setup
 
