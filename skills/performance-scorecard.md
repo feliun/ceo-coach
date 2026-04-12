@@ -22,6 +22,8 @@ When to use:
 - `references/leadership-framework.md` — hat definitions, time targets, constraint theory
 - `references/values.md` — objectives hierarchy for goal alignment
 - Behavioral data from `performance-analyst` agent or equivalent
+- Weekly plan(s) for the window — planned tasks, exit criteria, hat distribution targets
+- Quarterly plan for the current month — rock targets, key activities, exit criteria
 
 ---
 
@@ -31,6 +33,8 @@ When to use:
 |-----------|-------------|
 | `--window` | Time window to analyze (e.g., `7d`, `14d`, `30d`) |
 | data | Calendar events, emails, tasks completed/overdue, meeting notes, daily logs for the window |
+| weekly_plans | Weekly plan(s) covering the window — exit criteria, task assignments, hat targets |
+| quarterly_plan | Current month section from quarterly plan — rock targets, key activities, exit criteria |
 
 ---
 
@@ -47,14 +51,16 @@ When to use:
 Estimate time allocation across the hats defined in `references/leadership-framework.md` based on calendar, tasks, and meetings:
 
 ```
-Learner:   ██░░░░░░░░ X% (target: always on)
-Architect: ██░░░░░░░░ X% (target: ~25%)
-Coach:     ██░░░░░░░░ X% (target: ~25%)
-Engineer:  ██░░░░░░░░ X% (target: ~25%)
-Player:    ██░░░░░░░░ X% (target: ≤25%)
+Learner:   ██░░░░░░░░ X% (target: always on)  [planned: X%]
+Architect: ██░░░░░░░░ X% (target: ~25%)        [planned: X%]
+Coach:     ██░░░░░░░░ X% (target: ~25%)        [planned: X%]
+Engineer:  ██░░░░░░░░ X% (target: ~25%)        [planned: X%]
+Player:    ██░░░░░░░░ X% (target: ≤25%)        [planned: X%]
 ```
 
-Flag any hat significantly over or under target. Be specific about which activities drove the distribution.
+Compare actual distribution against both the leadership framework targets AND the weekly plan's hat distribution target (if available). Flag deviations from the plan specifically — the plan represents the user's intentional allocation for the week, so drift from plan is more actionable than drift from abstract targets.
+
+Be specific about which activities drove the distribution.
 
 ### 3. Delegation Audit
 
@@ -67,7 +73,26 @@ Flag any hat significantly over or under target. Be specific about which activit
 - How much time was spent on 12+ month horizon work (strategic) vs. <12 month (tactical)?
 - Is the balance appropriate for the current stage?
 
-### 5. Hard Questions
+### 5. Plan Execution
+
+Score how well the user executed against their own plans. This is the highest-signal dimension — it measures self-accountability.
+
+**Weekly plan compliance:**
+- Exit criteria hit rate: {N of M met} → percentage
+- Were planned tasks completed in the blocks they were assigned to, or did they drift?
+- Were calendar violation resolutions actually applied?
+- Did deferred tasks get addressed or carried forward silently?
+
+**Monthly target progress (from quarterly plan):**
+- For each rock targeted this month: is the KR on track to hit the exit value?
+- Key activities: how many were completed vs. planned?
+- Are month exit criteria on track, at risk, or already missed?
+
+If no weekly plan existed: score 0/10 for this dimension. Operating without a plan means there's no baseline to measure against — that itself is the problem.
+
+If no quarterly plan existed: note that monthly scoring is unavailable but still score weekly plan compliance if plans exist.
+
+### 6. Hard Questions
 
 Answer honestly based on evidence:
 - *"Was every hour this period spent at the point of constraint?"*
@@ -75,13 +100,15 @@ Answer honestly based on evidence:
 - *"Am I building moats or just running faster?"*
 - *"Are ideas and energy bubbling up from the team, or am I the only source?"*
 - *"Who on the team would I NOT rehire today?"* (flag if this recurs)
+- *"Did I do what I said I would do?"* (from plan exit criteria — the most direct accountability question)
 
-### 6. CEO Score
+### 7. CEO Score
 
 | Dimension | Score | Evidence |
 |-----------|-------|----------|
 | Focus on constraint | /10 | |
 | Time at CEO-level work | /10 | |
+| Plan execution | /10 | {exit criteria hit rate, monthly target progress} |
 | Delegation quality | /10 | |
 | Strategic thinking time | /10 | |
 | Talent development | /10 | |

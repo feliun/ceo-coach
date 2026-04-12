@@ -58,6 +58,14 @@ ceo-coach:
     required: false
     format: markdown
 
+  weekly-plans:
+    description: "Directory containing weekly plan files (plan-DD-MM-YYYY.md) and review logs"
+    paths:
+      - $WORKSPACE/logs/weekly/
+    required: false
+    format: directory
+    note: "Plan files start with 'plan-'. Review files do not. The performance-analyst fetches plans overlapping the review window."
+
   quarterly-plan:
     description: "Directory containing quarterly execution plans — monthly targets, exit criteria, key activities"
     paths:

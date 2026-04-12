@@ -18,8 +18,9 @@ When to use:
 
 ## Input
 
-- Performance scorecard output (constraint diagnosis, hat distribution, scores)
+- Performance scorecard output (constraint diagnosis, hat distribution, plan execution, scores)
 - Calendar audit output (compliance scorecard, violations)
+- Plan-vs-actual data (unmet exit criteria, monthly target gaps)
 
 ---
 

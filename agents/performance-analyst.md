@@ -2,8 +2,9 @@
 name: performance-analyst
 description: >
   Gather behavioral data for a CEO performance review. Fetches calendar events,
-  emails, tasks, meeting notes, and daily logs for a configurable time window.
-  Returns structured data for consumption by scorecard and audit skills.
+  emails, tasks, meeting notes, daily logs, weekly plans, and the quarterly plan
+  for a configurable time window. Returns structured data for consumption by
+  scorecard and audit skills.
 subagent_type: general-purpose
 ---
 
@@ -24,6 +25,9 @@ subagent_type: general-purpose
 | `target_date_iso` | End date in YYYY-MM-DD format |
 | `meetings_folder` | Relative path from vault_root to meeting notes (default: `meetings/`) |
 | `daily_logs_folder` | Relative path from vault_root to daily logs (default: `logs/daily/`) |
+| `weekly_logs_folder` | Relative path from vault_root to weekly logs (default: `logs/weekly/`) |
+| `quarterly_plan_folder` | Relative path from vault_root to quarterly plans (default: `logs/quarterly/`) |
+| `rocks_path` | Absolute path to the resolved rocks.yaml (needed to determine current quarter) |
 | `tasks_source` | Where to fetch tasks from (default: `asana`) |
 | `company_notes_folder` | Relative path from vault_root to company notes (default: `wiki/company/`) |
 
@@ -70,7 +74,38 @@ List daily log files in `{vault_root}/{daily_logs_folder}` for dates in the wind
 - Check whether it exists
 - Brief summary if present (first few lines after briefing section)
 
-### 6. Fleeting Thoughts
+### 6. Weekly Plan(s)
+
+Look for plan files in `{vault_root}/{weekly_logs_folder}` — files starting with `plan-` (filename format: `plan-DD-MM-YYYY.md`, where the date is the Monday of the planned week).
+
+Find all plan files whose week overlaps with the review window. A plan's week runs Monday through Friday — include it if any day of its week falls within `[target_date - window_days, target_date]`.
+
+For each matching plan, extract:
+- Week thesis (the one-sentence summary)
+- Exit criteria checklist — each item and whether it was checked off
+- Daily task assignments — what was planned for each block
+- Hat distribution target — the planned allocation
+- Calendar violations detected at plan time and their proposed resolutions
+- Deferred tasks (tasks that didn't fit the plan)
+
+If no plan files are found for the window: note "No weekly plans found for this period." This is significant — it means the user operated without a plan.
+
+### 7. Quarterly Plan
+
+Read `rocks_path` to extract the `quarter` field (e.g., `Q2-2026`).
+
+Locate the quarterly execution plan at `{vault_root}/{quarterly_plan_folder}/{quarter-lowercase}.md` (e.g., `logs/quarterly/q2-2026.md`).
+
+If found, extract:
+- The **current month's** section (based on `target_date_iso`):
+  - Rock targets for this month (which KRs should move, exit values)
+  - Key activities listed for this month
+  - Exit criteria for this month
+- Overall quarter status indicators if present
+
+If the quarterly plan file does not exist: note "No quarterly plan found." and continue. The review can still score performance but will lack the monthly target baseline.
+
+### 8. Fleeting Thoughts
 
 Collect raw thinking and ideas generated during the window from two sources:
 
@@ -118,6 +153,25 @@ Window: {start_date} → {end_date} ({N} days)
 - Logs found: N of {window_days}
 - Missing dates: [list]
 
+### Weekly Plans
+- Plans found: N (covering weeks: [list of week ranges])
+- No plan: yes/no (flag if the user had no plan for any week in the window)
+- Per plan:
+  - Week: {Mon date} → {Fri date}
+  - Thesis: {one-sentence}
+  - Exit criteria: {N of M met}
+  - Unmet criteria: [list]
+  - Hat distribution target: {planned allocation}
+  - Deferred tasks: [list]
+
+### Quarterly Plan
+- Found: yes/no
+- Quarter: {e.g., Q2-2026}
+- Current month targets:
+  - Rocks in focus: [list with target KR values]
+  - Key activities: [list]
+  - Exit criteria: [list]
+
 ### Fleeting Thoughts
 - Journaling entries: N (from daily notes)
 - Company notes: N
@@ -131,6 +185,8 @@ Window: {start_date} → {end_date} ({N} days)
 | Tasks | ✅ / ⚠️ | |
 | Meeting Notes | ✅ / ⚠️ | |
 | Daily Logs | ✅ / ⚠️ | |
+| Weekly Plans | ✅ / ⚠️ / ➖ | {plans found or not} |
+| Quarterly Plan | ✅ / ⚠️ / ➖ | {found or not, quarter} |
 | Fleeting Thoughts | ✅ / ⚠️ | |
 ```
 
