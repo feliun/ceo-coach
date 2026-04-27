@@ -63,6 +63,10 @@ Invoke `skills/refocus-directive.md` with scorecard and audit output.
 
 #### 8. Assemble and save
 
+Save the review to: `logs/weekly/DD-MM-YYYY.md` (using the end date of the window).
+This is the same directory as weekly plans — reviews and plans live together as the
+weekly accountability loop.
+
 Combine all outputs into a single review document:
 
 ```markdown
