@@ -35,20 +35,34 @@ Fetch all of the following. Each source is independent — one failure does NOT 
 
 Fetch all events from Google Calendar for `week_start` through `week_end` (Monday 00:00 to Friday 23:59, in the user's local timezone).
 
-Use the Google Calendar API via available MCP tools, or fall back to the Python `googleapiclient` approach using existing OAuth credentials at `~/.google-drive-mcp/credentials.json` and `~/.google-drive-mcp/gcp-oauth.keys.json` (these credentials have `calendar` scope).
+**Preferred order:**
 
-**Fallback method (Python):**
+1. **MCP tools** when a Google Calendar MCP server is connected (e.g., `mcp__claude_ai_Google_Calendar__list_events`).
+2. **`gws` CLI** as the fallback. `gws` is the [Google Workspace CLI](https://github.com/googleworkspace/gws) — it handles OAuth itself, so no credential paths need to be wired through environment variables.
 
-```python
-from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
-from googleapiclient.discovery import build
+> **Do not call the Google Calendar REST API directly** — neither via `curl`/access tokens nor via Python `googleapiclient`. The CLI fallback is simpler, locally cached, and avoids leaking the agent into auth-flow management.
 
-# Load credentials from ~/.google-drive-mcp/
-# Refresh if expired
-# Build calendar service
-# Call events().list() with timeMin, timeMax, singleEvents=True, orderBy=startTime
+**Fallback method (`gws` CLI):**
+
+Expand the week into RFC3339 bounds (in the user's local timezone) and call:
+
+```bash
+gws calendar events list \
+  --params '{
+    "calendarId": "primary",
+    "timeMin": "<week_start>T00:00:00<tz_offset>",
+    "timeMax": "<week_end>T23:59:59<tz_offset>",
+    "singleEvents": true,
+    "orderBy": "startTime",
+    "maxResults": 250
+  }' \
+  --format json
 ```
+
+Tips:
+- Use `--page-all` for ranges that may exceed `maxResults`.
+- For a quick sanity-check during development, `gws calendar +agenda --week --format json` returns this week's events across all calendars without needing date math.
+- If `gws` is not installed locally, report ⚠️ on the Calendar source and continue — do **not** silently fall back to the raw API.
 
 For each event extract:
 - Title (summary)
@@ -174,8 +188,8 @@ Deferred tasks: {list}
 ## Resilience
 
 - Each source is independent — one failure does NOT block others
-- If Google Calendar MCP tools are unavailable: fall back to Python googleapiclient with existing OAuth credentials
-- If Python fallback also fails: report ⚠️ with the error, return empty calendar section
+- If Google Calendar MCP tools are unavailable: fall back to the `gws` CLI (`gws calendar events list`). Never call the Google Calendar REST API directly.
+- If `gws` is also unavailable: report ⚠️ on the Calendar source with the install hint and continue — empty calendar section, do not block other sources.
 - If Asana search_tasks returns payment error: fall back to per-project fetching
 - If a project name is not found in Asana: skip it with ⚠️, continue with others
 - If no weekly logs exist: report ➖ (not applicable), not ⚠️ (not an error)

@@ -34,21 +34,73 @@ CEO Coach is a performance mirror for founders and executives. It gathers data f
 
 ## Setup
 
-### Prerequisites
+1. **Install the plugin.**
 
-- Calendar access (for time allocation analysis)
-- Task manager access (for completion tracking)
-- Optional: email access (for communication pattern analysis)
-- Optional: meeting notes folder (for context extraction)
+   Via the plugin marketplace:
 
-### Configuration
+   ```
+   /plugin install ceo-coach
+   ```
 
-1. Copy config examples from `config/` and customize:
-   - `rocks.yaml` — Your quarterly objectives with KRs and weights
-   - `calendar-rules.yaml` — Your scheduling rules and compliance targets
-   - `delegation-log.yaml` — Starts empty, populated by the delegation tracker
-2. Fill in reference files:
-   - `references/values.md` — Your core philosophy and decision-making priorities
-   - `references/thinking-style.md` — How you reason, your biases, depth calibration
-   - `references/leadership-framework.md` — Your CEO model: role hats, time targets, delegation philosophy
-1. Edit `commands/manifest.yaml` to point to your file locations
+   Or via clone:
+
+   ```
+   git clone https://github.com/feliun/ceo-coach.git ~/path/to/ceo-coach
+   ln -s ~/path/to/ceo-coach ~/.claude/plugins/ceo-coach
+   ```
+
+2. **Configure MCP servers.**
+
+   CEO Coach reads behavioral data from external sources via Claude Code's MCP integration. You configure these yourself — the plugin does not bundle MCP servers.
+
+   | Command | Required MCP servers |
+   |---------|---------------------|
+   | `/plan` | Asana (task fetch) + Google Calendar (availability) |
+   | `/review` | Google Calendar + Gmail (communication patterns) |
+   | `/reflect`, `/goals` | None required (operate on local files) |
+
+   See the [Claude Code MCP setup guide](https://docs.anthropic.com/en/docs/claude-code/mcp) for instructions on installing and authenticating each server. Any MCP server that exposes the equivalent tools will work — the agents call tools by name (e.g., `mcp__asana__asana_search_tasks`).
+
+3. **Install `gws` (Google Calendar CLI fallback).**
+
+   When the Google Calendar MCP server is unavailable, the `week-planner` agent falls back to the [`gws` CLI](https://github.com/googleworkspace/gws) (Google Workspace CLI). The agent is instructed **not** to call the Google Calendar REST API directly (no `curl` against the API, no Python `googleapiclient`) — `gws` handles OAuth itself and produces JSON the agent can parse.
+
+   Install once:
+
+   ```
+   npm install -g @googleworkspace/cli        # installs the `gws` binary
+   gws calendar +agenda --today               # triggers first-time auth
+   ```
+
+   If you only use the Google Calendar MCP server, the fallback is never invoked and `gws` is optional. If neither is available, the calendar section of `/plan` reports ⚠️ and the rest of the plan still runs.
+
+4. **Configure your goals and rules.**
+
+   The `config/` directory ships `.example` templates. Copy each one, drop the `.example` suffix, then edit:
+
+   ```
+   cp config/rocks.yaml.example          config/rocks.yaml
+   cp config/calendar-rules.yaml.example config/calendar-rules.yaml
+   cp config/delegation-log.yaml.example config/delegation-log.yaml
+   ```
+
+   - `rocks.yaml` — your quarterly objectives, key results, and weights
+   - `calendar-rules.yaml` — protected blocks, day themes, meeting limits
+   - `delegation-log.yaml` — starts empty, populated by the delegation tracker
+
+   Then fill in the reference files used for scoring and reflection:
+
+   - `references/values.md` — core philosophy and decision-making priorities
+   - `references/thinking-style.md` — how you reason, your biases, depth calibration
+   - `references/leadership-framework.md` — your CEO model: role hats, time targets, delegation philosophy
+
+   Finally, point `commands/manifest.yaml` at the locations you chose if they differ from the defaults.
+
+5. **First run.**
+
+   ```
+   /goals    # set or review your quarterly objectives
+   /plan     # generate a weekly schedule grounded in those objectives
+   ```
+
+   Run `/review` at the end of any window (week, month, quarter) to score behavior against the goals you set.
