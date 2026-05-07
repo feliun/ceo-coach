@@ -61,7 +61,7 @@ ceo-coach:
   weekly-plans:
     description: "Directory containing weekly plan files (plan-DD-MM-YYYY.md) and review logs"
     paths:
-      - $WORKSPACE/logs/weekly/
+      - $WORKSPACE/records/logs/weekly/
     required: false
     format: directory
     note: "Plan files start with 'plan-'. Review files do not. The performance-analyst fetches plans overlapping the review window."
@@ -69,7 +69,7 @@ ceo-coach:
   quarterly-plan:
     description: "Directory containing quarterly execution plans — monthly targets, exit criteria, key activities"
     paths:
-      - $WORKSPACE/logs/quarterly/
+      - $WORKSPACE/records/logs/quarterly/
     required: false
     format: directory
     note: "The plan command resolves to the file matching the current quarter from rocks.yaml (e.g., Q2-2026 → q2-2026.md)"

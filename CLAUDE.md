@@ -45,7 +45,7 @@ Resolved via manifest (`commands/manifest.yaml` → `skills/manifest-resolver/SK
 ## Operational Rules
 
 - **Period-agnostic.** Accept `--window` (default: `7d`). Never assume weekly cadence.
-- **Consume, don't duplicate.** For operational data, request from chief-of-staff `ops-report` — don't re-fetch from raw sources.
+- **Consume, don't duplicate.** If the user has the `chief-of-staff` plugin installed, request `ops-report` data from there instead of re-fetching from raw sources. Otherwise, fetch directly from the configured MCP sources.
 - **Delegation is interactive.** The tracker asks what could have been delegated. Self-reflection is the point — don't automate this.
 - **Never skip data gathering** before producing scores.
 - **Never send reviews externally** — this is a private accountability tool.

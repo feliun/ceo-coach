@@ -20,14 +20,14 @@ When to use:
 
 The ceo-coach plugin resolves configs via a hardcoded 2-step lookup:
 `./path` → `~/.claude/path`. This skill **overrides** that lookup by reading a
-central manifest (`agents/ceo-coach/commands/manifest.yaml`) and resolving paths from there.
+central manifest (`commands/manifest.yaml`) and resolving paths from there.
 
 This means config files can live anywhere — `system/memory/`, project root, `~/.claude/`,
 or any future location — without modifying plugin code.
 
 ## Algorithm
 
-1. **Read** `agents/ceo-coach/commands/manifest.yaml`
+1. **Read** `commands/manifest.yaml`
 2. **Select the domain** from the calling command's namespace (e.g., `ceo-coach:review` → domain `ceo-coach`)
 3. **For each config key** in that domain:
    a. Iterate through the `paths` array in order

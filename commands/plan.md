@@ -17,7 +17,7 @@ Produce a concrete weekly plan: what to work on, when, and why — grounded in q
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--week` | upcoming Monday | ISO date (YYYY-MM-DD) of the Monday to plan. Defaults to the next Monday from today. If today is Monday, plans the current week. |
-| `--projects` | `Engineer,Deep Thinking,Strategy,Business` | Comma-separated Asana project names to pull tasks from, in addition to due-date search. |
+| `--projects` | `Engineer,Deep Thinking,Strategy,Business` | Comma-separated Asana project names to pull tasks from, in addition to due-date search. **These are example defaults from the maintainer's setup — replace with your own Asana project names** (typical categories: deep-work focus, strategic initiatives, business operations). |
 
 ---
 

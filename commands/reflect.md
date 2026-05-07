@@ -72,7 +72,7 @@ After the Q&A, produce a brief synthesis:
 **Pattern to watch:** {if this connects to a recurring theme}
 ```
 
-Offer to save the reflection via `/feed` if substantive.
+If you have the `wiki-manager` plugin installed, offer to save the reflection via `/feed`. Otherwise, print the reflection to the terminal so the user can save it manually.
 
 ---
 
