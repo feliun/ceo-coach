@@ -30,12 +30,14 @@ Resolve:
 - `rocks` (required) — quarterly objectives, KR progress, weights, status
 - `calendar-rules` (required for this command) — day themes, protected blocks, meeting limits, delegation defaults
 - `leadership-framework` — hat model and time targets
+- `weekly-plans` — the directory holding plan and review files (this command's output location, and where the prior week's review is read from)
+- `quarterly-plan` — the directory holding quarterly execution plans
 
 #### 2. Load rocks and resolve quarterly plan
 
 Read the resolved `rocks.yaml`. Extract the `quarter` field (e.g., `Q2-2026`).
 
-Locate the quarterly execution plan at `$WORKSPACE/logs/quarterly/{quarter-lowercase}.md` (e.g., `logs/quarterly/q2-2026.md`). This file contains monthly targets, exit criteria, key activities, and the dependency map.
+Locate the quarterly execution plan in the resolved `quarterly-plan` directory as `{quarter-lowercase}.md` (default: `$WORKSPACE/records/logs/quarterly/q2-2026.md`). This file contains monthly targets, exit criteria, key activities, and the dependency map.
 
 If the quarterly plan file does not exist: note with ⚠️ and proceed using rocks.yaml alone. The plan will lack monthly targets and exit criteria but can still produce a schedule.
 
@@ -62,12 +64,12 @@ Dispatch the `week-planner` agent (see `agents/week-planner.md`) with:
 - `week_end`: the Friday date (week_start + 4 days)
 - `projects`: the Asana project names from `--projects`
 - `vault_root`: absolute path to the workspace
-- `weekly_logs_folder`: `logs/weekly/`
+- `weekly_logs_folder`: the resolved `weekly-plans` directory (default `records/logs/weekly/`) — plans and reviews share it
 
 The agent returns:
 - Calendar events for Monday-Friday
 - Asana tasks (due this week + from specified projects)
-- Last week's review summary (if exists)
+- Last week's review, if one exists: its Overview, per-rock progress, time buckets, and any open threads from journaling. Reviews are descriptive, not scored — use the Overview and the rock numbers to set this week's thesis and starting position. A legacy-format review returns CEO/compliance scores instead; the agent labels which shape it found.
 
 #### 6. Identify current month targets
 
@@ -168,7 +170,9 @@ tags: [weekly, plan, log]
 
 {Table: rocks with weight, status, KR progress, current month target from quarterly plan}
 
-Last week's weighted rock score: {from last review, or "N/A — no prior review"}
+Last week's weighted rock progress: {Q{N} weighted X% vs Y% elapsed, from the last review's section 2 — or "N/A — no prior review"}
+
+Where last week landed: {one line from the last review's Overview, or omit if no prior review}
 
 ---
 
@@ -209,7 +213,7 @@ Last week's weighted rock score: {from last review, or "N/A — no prior review"
 *Next review: {Friday date} Friday COB.*
 ```
 
-Save to: `$WORKSPACE/logs/weekly/plan-{DD-MM-YYYY}.md` where the date is the Monday of the planned week.
+Save to `plan-{DD-MM-YYYY}.md` inside the resolved `weekly-plans` directory (default `$WORKSPACE/records/logs/weekly/`), where the date is the Monday of the planned week. `/review` writes its output to the same directory without the `plan-` prefix — that pairing is the weekly accountability loop.
 
 #### 13. Report
 
@@ -233,6 +237,6 @@ Present the three most important actions for the user to take before the week st
 - If quarterly plan file is missing: proceed with rocks.yaml alone, note ⚠️ — the plan will lack monthly targets but can still schedule based on rock weights and status
 - If calendar data fails: produce a plan based on the ideal schedule from calendar rules, note ⚠️ that it's not verified against actual events
 - If Asana fails: produce a plan using only quarterly plan key activities, note ⚠️
-- If last week's review is missing: skip the "Last week's score" line, note first-time plan
+- If last week's review is missing: skip the "Last week's weighted rock progress" and "Where last week landed" lines, note first-time plan
 - If calendar rules are missing: this command cannot produce a meaningful plan — report ❌ and instruct the user to configure calendar rules first
 - Never produce an empty plan — always output at least the ideal block structure from calendar rules

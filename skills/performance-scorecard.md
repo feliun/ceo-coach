@@ -12,8 +12,8 @@ Purpose:
 Produce an evidence-based CEO performance score for a given time window. Every finding must cite specific data — calendar events, emails, tasks, meeting notes.
 
 When to use:
-- Called by the `review` command as a core component
-- Standalone: "score my performance for the last 2 weeks"
+- **Ad-hoc, on request only.** `/review` no longer calls this skill — it produces a descriptive review and deliberately does not grade. Invoke this when the user explicitly asks to be scored: "score my performance for the last 2 weeks".
+- Gather the data yourself first (dispatch `performance-analyst` for the window); nothing upstream hands it to you anymore.
 
 ---
 

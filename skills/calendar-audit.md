@@ -11,8 +11,8 @@ Purpose:
 Run the calendar compliance checklist from configured rules against actual calendar data for a given period. Produces a pass/fail scorecard with evidence.
 
 When to use:
-- Called by the `review` command as a component
-- Standalone: "audit my calendar for this week"
+- **Ad-hoc, on request only.** `/review` no longer calls this skill; it reports where the time went without checking it against rules. Invoke on request: "audit my calendar for this week".
+- Note that `/plan` runs its own equivalent check inline (step 7) against the *upcoming* week rather than invoking this skill. This one looks backward.
 
 ---
 

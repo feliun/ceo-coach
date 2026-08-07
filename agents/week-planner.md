@@ -23,7 +23,7 @@ subagent_type: general-purpose
 | `week_end` | Friday date in YYYY-MM-DD format |
 | `projects` | Comma-separated Asana project names to fetch tasks from (e.g., `Engineer,Deep Thinking,Strategy,Business`) |
 | `vault_root` | Absolute path to the vault |
-| `weekly_logs_folder` | Relative path from vault_root to weekly logs (default: `logs/weekly/`) |
+| `weekly_logs_folder` | Relative path from vault_root to weekly logs — plans and reviews live together here (default: `records/logs/weekly/`) |
 
 ---
 
@@ -102,16 +102,17 @@ For each task extract:
 
 ### 3. Last Week's Review
 
-Look for the most recent file in `{vault_root}/{weekly_logs_folder}` that is NOT a plan file (i.e., does not start with `plan-`). These are performance reviews.
+Look for the most recent file in `{vault_root}/{weekly_logs_folder}` that is NOT a plan file (i.e., does not start with `plan-`). These are the weekly reviews written by `/review`.
 
 Sort by filename date (DD-MM-YYYY format), take the most recent one that falls before `week_start`.
 
-If found, extract:
-- Weighted rock score
-- CEO score
-- Compliance score
-- Refocus directive section (the STOP, START, calendar fix, role reminder)
-- Any overdue tasks flagged
+Reviews are **descriptive**, not scored — they contain four data sections and an Overview. Extract:
+- **Overview** — the closing `## Overview — how the week went` section: the week's characterization, the cross-section convergence, and the highlights. This is the most useful input to next week's thesis.
+- **Rock progress** (`## 2. How I progressed`) — per-rock % and KR state, plus the "Q{N} weighted progress vs. quarter elapsed" line. Carry the numbers forward as the starting position.
+- **Where the time went** (`## 1. Where I spent my time`) — the activity buckets with hours and %, to compare against this week's proposed allocation.
+- **Fleeting thoughts** (`## 3.`) — any unresolved question or decision the user was chewing on that should get a block this week.
+
+Older reviews (written before the descriptive rewrite) instead carry `Performance Scorecard`, `Calendar Audit`, and `Refocus Directive` sections with CEO/compliance scores out of 10. If the file you find has that shape, extract the scores and the refocus directive's STOP/START items instead, and label them as coming from a legacy-format review.
 
 If no review exists: note "No prior review found" and continue.
 
@@ -163,9 +164,13 @@ From projects: N (across {list of project names})
 
 Found: yes/no
 File: {filename}
-Rock score: X/10
-CEO score: X/10
-Refocus directive: {summary}
+Format: descriptive / legacy-scored
+Overview: {the week's characterization + convergence, 2-4 lines}
+Highlights: [list]
+Rock progress: [{rock, %, KR state}] · Q{N} weighted {X}% vs {Y}% elapsed
+Time buckets: [{bucket, hours, % of scheduled}]
+Open threads from journaling: [list]
+{if legacy-scored:} CEO score: X/10 · Compliance: X/10 · Refocus directive: {summary}
 
 ### Last Plan
 
@@ -193,5 +198,6 @@ Deferred tasks: {list}
 - If Asana search_tasks returns payment error: fall back to per-project fetching
 - If a project name is not found in Asana: skip it with ⚠️, continue with others
 - If no weekly logs exist: report ➖ (not applicable), not ⚠️ (not an error)
+- If the last review is in the legacy scored format (has `Performance Scorecard` / `Refocus Directive` rather than the four numbered sections + Overview): extract what it has, label the format, and do not report ⚠️ — both shapes are valid inputs
 - Always produce a report, even if all sources fail
 - Do NOT schedule, prioritize, or assign tasks — just fetch and structure data

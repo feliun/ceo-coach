@@ -1,6 +1,6 @@
 # Leadership Framework
 
-This file defines the CEO operating model used by the performance scorecard and calendar audit. Customize it to match your leadership philosophy.
+This file defines the CEO operating model used by `/plan` and by the ad-hoc performance-scorecard and calendar-audit skills. (`/review` does not read it — it buckets time by activity type rather than by hat.) Customize it to match your leadership philosophy.
 
 ---
 

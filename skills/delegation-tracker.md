@@ -12,8 +12,8 @@ Purpose:
 Maintain a running log of tasks the user did but should have delegated. Track recurring patterns and escalate when something becomes a habit (configurable streak threshold, default: 3).
 
 When to use:
-- Called by the `review` command as a component
-- Standalone: "let's do a delegation check"
+- **Ad-hoc, on request only.** `/review` no longer calls this skill, so the delegation prompt is no longer part of the weekly loop — the log only advances when the user asks: "let's do a delegation check".
+- If the user wants the streak counters to keep meaning something, they need to run this on a deliberate cadence. Say so plainly if the log has gone stale.
 
 ---
 

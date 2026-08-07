@@ -1,18 +1,20 @@
 ---
 name: performance-analyst
 description: >
-  Gather behavioral data for a CEO performance review. Fetches calendar events,
-  emails, tasks, meeting notes, daily logs, weekly plans, and the quarterly plan
-  for a configurable time window. Returns structured data for consumption by
-  scorecard and audit skills.
+  Gather behavioral data for a CEO review. Fetches calendar events, emails, tasks,
+  meeting notes, daily logs, weekly plans, and the quarterly plan for a configurable
+  time window. Returns structured data for consumption by the `review` command and
+  the ad-hoc scorecard, audit, and refocus skills.
 subagent_type: general-purpose
 ---
 
 # Agent: Performance Analyst
 
-**Role:** Fetch and structure behavioral data for a given time window. This agent gathers raw data — it does not analyze or score. Analysis is done by the skills that consume its output.
+**Role:** Fetch and structure behavioral data for a given time window. This agent gathers raw data — it does not analyze or score. Interpretation belongs to whatever consumes its output.
 
 **Dispatched by:** `/review` command
+
+**Consumption note:** `/review` uses four of the slices below — **calendar events** (§1), **completed tasks** (§3), **daily-note journaling** (§8a), and **meeting notes** (§4). It ignores emails, overdue tasks, weekly/quarterly plans, and company notes. Keep returning all of them anyway: the ad-hoc `performance-scorecard`, `calendar-audit`, and `refocus-directive` skills depend on the full set. Fetch every source independently so an unused slice failing never blocks a used one.
 
 ---
 
@@ -23,10 +25,10 @@ subagent_type: general-purpose
 | `vault_root` | Absolute path to the vault |
 | `window_days` | Number of days to look back |
 | `target_date_iso` | End date in YYYY-MM-DD format |
-| `meetings_folder` | Relative path from vault_root to meeting notes (default: `meetings/`) |
-| `daily_logs_folder` | Relative path from vault_root to daily logs (default: `logs/daily/`) |
-| `weekly_logs_folder` | Relative path from vault_root to weekly logs (default: `logs/weekly/`) |
-| `quarterly_plan_folder` | Relative path from vault_root to quarterly plans (default: `logs/quarterly/`) |
+| `meetings_folder` | Relative path from vault_root to meeting notes (default: `records/meetings/`) |
+| `daily_logs_folder` | Relative path from vault_root to daily logs (default: `records/logs/daily/`) |
+| `weekly_logs_folder` | Relative path from vault_root to weekly logs (default: `records/logs/weekly/`) |
+| `quarterly_plan_folder` | Relative path from vault_root to quarterly plans (default: `records/logs/quarterly/`) |
 | `rocks_path` | Absolute path to the resolved rocks.yaml (needed to determine current quarter) |
 | `tasks_source` | Where to fetch tasks from (default: `asana`) |
 | `company_notes_folder` | Relative path from vault_root to company notes (default: `wiki/company/`) |
@@ -45,7 +47,9 @@ Fetch all events in the window. For each event extract:
 - Whether it's a recurring event
 - Location/description if available
 
-Classify each event by role hat specified at "../references/leadership-framework.md"  based on title and attendees. Use best judgment — the scorecard skill will refine.
+Classify each event by role hat specified at "../references/leadership-framework.md"  based on title and attendees. Use best judgment — the consumer refines (the `performance-scorecard` skill re-scores it; `/review` buckets events by activity type instead and needs the raw title, duration, and attendees more than the hat).
+
+Also flag events the user declined or that were cancelled — `/review` reports skipped events as an observation.
 
 ### 2. Emails Sent and Received
 
@@ -57,22 +61,29 @@ Fetch email metadata for the window:
 ### 3. Tasks
 
 Fetch from the `tasks_source` (Asana MCP by default):
-- Tasks completed in the window (with completion dates)
+- Tasks completed in the window (with completion dates **and the task permalink URL** — `/review` links each completed task to it)
 - Tasks currently overdue
 - Tasks created in the window
+
+**Premium gate:** Asana's search endpoint returns `payment_required` on both the `asana` and `claude_ai_Asana` MCP servers for accounts without the premium tier. When it does, derive completed tasks from the daily notes' `✅ Cleared` / `dropped off` task lines instead (those lines carry the Asana URL), and mark the Tasks source ⚠️ as possibly incomplete.
 
 ### 4. Meeting Notes
 
 List meeting files in `{vault_root}/{meetings_folder}` with dates in the window. For each:
+- **File basename** (`YYYY-MM-DD slug`) — required: `/review` wikilinks to notes by basename
 - Title, date, attendees
 - Topics discussed (H3 headings under Summary)
+- **The summary body itself**, not just the headings — `/review` synthesizes across meetings into themed buckets and cannot do that from a heading list
 - Action items mentioned
+
+If a meeting appears on the calendar (or in Granola) but has no vault note yet, return it with its raw title and `note: null` so the consumer can mark it *(meeting note not yet pulled)* rather than emit a broken wikilink.
 
 ### 5. Daily Logs
 
 List daily log files in `{vault_root}/{daily_logs_folder}` for dates in the window (filename format: `DD-MM-YYYY.md`). For each:
 - Check whether it exists
 - Brief summary if present (first few lines after briefing section)
+- The `### Calendar` briefing and `# Meetings` links verbatim — these are the fallback source when the Google Calendar or Granola MCP server is down
 
 ### 6. Weekly Plan(s)
 
@@ -103,14 +114,14 @@ If found, extract:
   - Exit criteria for this month
 - Overall quarter status indicators if present
 
-If the quarterly plan file does not exist: note "No quarterly plan found." and continue. The review can still score performance but will lack the monthly target baseline.
+If the quarterly plan file does not exist: note "No quarterly plan found." and continue. Nothing downstream is blocked — `/review` does not read this slice, and the scorecard skill falls back to rock weights without the monthly target baseline.
 
 ### 8. Fleeting Thoughts
 
 Collect raw thinking and ideas generated during the window from two sources:
 
 **a) Journaling sections from daily notes**
-In each daily log (`{vault_root}/{daily_logs_folder}/DD-MM-YYYY.md`), extract the full content under the `# Journaling` and `# Free thinking` headings (both H1). For each, stop at the next H1 heading. Skip if the section is empty.
+In each daily log (`{vault_root}/{daily_logs_folder}/DD-MM-YYYY.md`), extract the full content under the `# Journaling` and `# Free Thinking` headings (both H1; match the heading case-insensitively). For each, stop at the next H1 heading. Return the `DD-MM-YYYY` basename alongside the content — `/review` attributes every quote to its source note by wikilink. Skip empty sections, but report which dates were empty: `/review` names the blank days.
 
 **b) Company notes**
 List files in `{vault_root}/wiki/company/` whose filename date falls within the window (filename format: `YYYY-MM-DD <title>.md`). For each:
@@ -132,7 +143,7 @@ Window: {start_date} → {end_date} ({N} days)
 - Total events: N
 - Total meeting hours: Xh
 - Hat estimate: Learner X%, Architect X%, Coach X%, Engineer X%, Player X%
-- Events list: [{title, time, duration, attendees, hat}]
+- Events list: [{title, time, duration, attendees, hat, status: attended/declined/cancelled}]
 
 ### Email
 - Sent: N, Received: N
@@ -140,11 +151,15 @@ Window: {start_date} → {end_date} ({N} days)
 
 ### Tasks
 - Completed: N
+- Completed list: [{name, completed_on, url}]
 - Overdue: N
 - Created: N
+- Source: asana / daily-note fallback ⚠️
 
 ### Meeting Notes
 - Files found: N
+- Per meeting: [{basename (`YYYY-MM-DD slug`), title, date, attendees, summary body, action items}]
+- Meetings without a note: [{raw title, date}]
 - Attendees across meetings: [list]
 - Topics: [list]
 - Action items: [list]
@@ -152,6 +167,7 @@ Window: {start_date} → {end_date} ({N} days)
 ### Daily Logs
 - Logs found: N of {window_days}
 - Missing dates: [list]
+- Per log: [{basename `DD-MM-YYYY`, brief summary, `### Calendar` briefing, `# Meetings` links}]
 
 ### Weekly Plans
 - Plans found: N (covering weeks: [list of week ranges])
@@ -175,7 +191,8 @@ Window: {start_date} → {end_date} ({N} days)
 ### Fleeting Thoughts
 - Journaling entries: N (from daily notes)
 - Company notes: N
-- Entries: [{date, source, title (if company note), content}]
+- Entries: [{date, note basename, source (`# Journaling` / `# Free Thinking` / company note), title (if company note), content}]
+- Dates with an empty or absent journaling section: [list]
 
 ### Sources
 | Source | Status | Details |
@@ -198,3 +215,4 @@ Window: {start_date} → {end_date} ({N} days)
 - If a source fails: note with ⚠️, continue with remaining sources
 - Always produce a report, even if all sources failed
 - Do NOT analyze or score — just fetch and structure data
+- Prioritize the four slices `/review` consumes (calendar, completed tasks, journaling, meeting notes). If time or quota is short, return those complete rather than all eight partial.

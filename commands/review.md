@@ -1,14 +1,19 @@
 ---
 name: ceo-coach:review
 description: >
-  Performance review for a configurable time window. Orchestrates data gathering,
-  performance scorecard, calendar audit, delegation tracking, and refocus directive.
-  Period-agnostic — the user decides when to run it.
+  Descriptive weekly review for a configurable time window. Aggregates four lenses —
+  time allocation (calendar), progress (completed tasks + rocks), fleeting thoughts
+  (daily-note journaling), and relevant info (meeting transcripts) — then synthesizes
+  an interpretive Overview. Period-agnostic — the user decides when to run it.
 ---
 
 ## Command: ceo-coach:review
 
-The core command. Produces a comprehensive performance review by orchestrating all ceo-coach skills.
+Produces a **descriptive** weekly review: four neutral "here's what happened" lenses,
+followed by a single interpretive Overview. This command deliberately does NOT score,
+audit the calendar against rules, or issue a refocus directive — it reports and
+synthesizes, it does not grade. (The scoring/audit/delegation/refocus skills still
+exist for ad-hoc use but are no longer orchestrated here — see `### Retired orchestration`.)
 
 ---
 
@@ -24,123 +29,156 @@ The core command. Produces a comprehensive performance review by orchestrating a
 
 #### 1. Manifest resolution
 
-Invoke `manifest-resolver` for domain `ceo-coach`.
-Resolve: `rocks` (required), `calendar-rules`, `delegation-log`, `leadership-framework`, `quarterly-plan`.
+Invoke `manifest-resolver` for domain `ceo-coach`. Resolve:
+- `rocks` (**required**) — quarterly objectives, KRs, weights, status.
+- `weekly-plans` (optional) — the `records/logs/weekly/` directory; this is where the
+  review is saved.
 
-#### 2. Load references
+The other manifest keys (`calendar-rules`, `delegation-log`, `leadership-framework`,
+`values`, `quarterly-plan`, `thinking-style`) are **not needed** by this command.
 
-Read:
-- `references/leadership-framework.md` — hat model, time targets, constraint theory
-- `references/values.md` — objectives hierarchy
+#### 2. Gather behavioral data
 
-#### 3. Gather behavioral data
+Dispatch the `performance-analyst` agent (`agents/performance-analyst.md`) with the
+resolved `rocks` path for the window. This command only consumes four of its slices:
 
-Dispatch the `performance-analyst` agent (see `agents/performance-analyst.md`) with the resolved `rocks` path and `quarterly-plan` folder. The agent fetches:
-- Calendar events for the window
-- Emails sent and received in the window
-- Tasks completed and overdue in the window
-- Meeting notes from the window
-- Daily logs from the window
-- Weekly plan(s) covering the window (from `logs/weekly/plan-*.md`)
-- Quarterly plan for the current month (monthly targets, exit criteria, key activities)
-- Fleeting thoughts from the window
+- **Calendar events** for the window → Section 1
+- **Tasks completed** in the window → Section 2
+- **Daily logs** (the `# Journaling` and `# Free Thinking` sections) → Section 3
+- **Meeting notes** from the window → Section 4
 
-#### 4. Run performance scorecard
+Emails, overdue tasks, weekly/quarterly plans, and fleeting-thought hubs the agent may
+also return are ignored here.
 
-Invoke `skills/performance-scorecard.md` with the gathered data, the `--window` parameter, and the plan data (weekly plans + quarterly plan). The scorecard uses these as baselines: actual performance is measured against what was planned, not just against abstract targets.
+#### 3. Assemble the four descriptive sections
 
-#### 5. Run calendar audit
+Build the sections **in this order** (1 → 4). Keep the tone neutral and factual — no
+scoring, no drift-shaming. Each section states its own data source.
 
-Invoke `skills/calendar-audit.md` with calendar data and resolved calendar rules.
+**Wikilink rules (apply everywhere):**
+- **Daily notes** → link by `DD-MM-YYYY` basename, e.g. `[[05-08-2026]]` (Obsidian
+  resolves regardless of the `records/logs/daily/` path).
+- **Meeting notes** → link by `YYYY-MM-DD slug` basename, e.g.
+  `[[2026-08-06 pilares-de-contenido|Pilares de contenido]]`.
+- **Completed tasks** → link to their raw Asana URL (from the daily-note task lines).
+- **Rocks** → plain text; pull rock names **verbatim** from `rocks.yaml`, never
+  abbreviated.
 
-#### 6. Run delegation tracker
+##### Section 1 — Where I spent my time
+Source: calendar allocation. Group events into activity buckets (e.g. team weeklies &
+governance, 1:1s, deep work, sales & external BD, content, community & learning), with
+hours and % of scheduled time. Add a few plain observations (heaviest day, open days,
+skipped events). Wikilink each named meeting to its meeting note.
 
-Invoke `skills/delegation-tracker.md`. This is interactive — it asks the user what they should have delegated.
+##### Section 2 — How I progressed
+Source: completed tasks + `rocks.yaml`.
+- List tasks completed in the window, each linked to its Asana URL, each tagged with the
+  rock(s) it feeds (verbatim rock name, or "no rock").
+- Render **all** rocks from `rocks.yaml` (do not drop any), each with a progress bar, %,
+  and KR breakdown. Include "Q3 weighted progress vs. quarter elapsed".
+- Add one neutral "where the week's work landed" line: note when effort was high on a
+  rock but its KRs (deliverable-gated) didn't move. State it factually, don't grade it.
 
-#### 7. Generate refocus directive
+##### Section 3 — Fleeting thoughts
+Source: daily-note `# Journaling` / `# Free Thinking` sections.
+- Quote each substantive entry, attributed to its source daily note via wikilink
+  (`— from [[DD-MM-YYYY]]`).
+- Name the days with no entry ("Mon/Tue blank"). If the whole window is blank, say so
+  plainly — do not editorialize it as a failure.
 
-Invoke `skills/refocus-directive.md` with scorecard and audit output.
+##### Section 4 — Other relevant information
+Source: meeting transcripts (Granola notes in `records/meetings/`).
+- Synthesize across all meetings into a handful of themed buckets (e.g. Financials &
+  compensation, People & org, Product, Content & conferences, Sales & BD, Afianza, Team
+  development) — not a meeting-by-meeting dump.
+- Head each bucket with wikilinks to the meeting notes it draws from.
+- **No-note fallback:** if a meeting exists (calendar/Granola) but has no vault note yet,
+  cite its raw title and mark *(meeting note not yet pulled)* instead of a broken
+  wikilink.
 
-#### 8. Assemble and save
+#### 4. Synthesize the Overview (generated LAST, placed LAST)
 
-Save the review to: `logs/weekly/DD-MM-YYYY.md` (using the end date of the window).
-This is the same directory as weekly plans — reviews and plans live together as the
-weekly accountability loop.
+After sections 1–4 exist, write a short **Overview** as the final section. This is the
+one interpretive part of the review — a synthesis *over* the four data sections, not an
+independent fetch. It must:
+- Characterize the week in a sentence or two (e.g. "a strategy-and-alignment week, not a
+  shipping week").
+- Name **cross-section convergence** — where the calendar, the rocks, and the journaling
+  point at the same story. This is the Overview's main job; no single section shows it
+  alone.
+- List the **main highlights** (3–6 bullets), each wikilinked to its supporting
+  meeting/daily note.
 
-Combine all outputs into a single review document:
+Keep it honest and direct (board-advisor tone) but grounded strictly in the gathered
+data — never invent.
+
+#### 5. Assemble and save
+
+Save to `records/logs/weekly/DD-MM-YYYY.md` (end date of the window) — same directory as
+weekly plans; reviews and plans form the weekly accountability loop.
 
 ```markdown
 ---
 type: reflection
 created: {DD-MM-YYYY}
 tags: [review, performance, log]
+status: active
 ---
 
-# Performance Review — {DD-MM-YYYY}
+# Weekly Review — {DD-MM-YYYY}
+*Window: {start} → {end}*
 
-Window: {window parameter} ({start date} → {end date})
+## 1. Where I spent my time
+{Section 1}
 
-## Performance Scorecard
-{from performance-scorecard skill}
+## 2. How I progressed
+{Section 2}
 
-## Calendar Audit
-{from calendar-audit skill}
+## 3. Fleeting thoughts
+{Section 3}
 
-## Delegation Review
-{from delegation-tracker skill}
+## 4. Other relevant information
+{Section 4}
 
-## Plan vs. Actual
-{Compare what was planned against what actually happened. This section is the
-accountability core of the review — it makes drift visible.}
-
-### Weekly Plan Compliance
-{For each weekly plan in the window:}
-- **Week of {date}:** {N of M} exit criteria met
-- Unmet criteria: {list with brief explanation of what blocked each}
-- Planned hat distribution vs. actual: {side-by-side comparison}
-- Calendar violations at plan time: {were the proposed resolutions applied?}
-
-### Monthly Target Progress
-{From the quarterly plan's current month section:}
-- Rock targets for this month: {each rock with target KR value vs. current value}
-- Key activities status: {done / in progress / not started / blocked}
-- Month exit criteria: {on track / at risk / missed — with evidence}
-
-{If no weekly plan exists: "No weekly plan found for this period. Operating
-without a plan makes performance measurement unreliable — recommend running
-/plan before each week."}
-
-{If no quarterly plan exists: "No quarterly plan found. Monthly targets
-unavailable — scoring against rock weights only."}
-
-## Fleeting Thoughts
-{from performance-analyst fleeting thoughts data — list all journaling entries,
-free thinking entries, and company notes from the window. Group by date.
-Include the full content of each entry. If none found, note "No fleeting thoughts
-captured this period." and flag as a reflection gap.}
-
-## Refocus Directive
-{from refocus-directive skill}
+## Overview — how the week went
+{Interpretive synthesis + main highlights, generated last}
 ```
 
-#### 9. Report
+#### 6. Report
 
 ```
 REVIEW COMPLETE — {DD-MM-YYYY}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Window:     {window}
-CEO Score:  {X}/10
-Compliance: {X}/10
-Delegation: {N items logged, M escalated}
-File:       {path}
+Window:        {window}
+Time tracked:  {N}h scheduled across {M} sessions
+Tasks done:    {N} completed
+Rocks:         {N} at 0% · Q3 {X}% vs {Y}% elapsed
+Meetings:      {N} synthesized
+File:          {path}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 ---
 
-### Resilience
+### Fallbacks & resilience
 
-- If performance-analyst fails: attempt inline data gathering, note with ⚠️
-- If calendar-rules config is missing: skip calendar audit with ⚠️
-- If delegation-log is missing: create a new one
-- Never produce a review without the performance scorecard — that's the core
+- **Asana search is premium-gated** (`payment_required` on both `asana` and
+  `claude_ai_Asana` MCP servers). When the live completed-tasks query fails, derive
+  completed tasks from the daily notes' `✅ Cleared` / `dropped off` markers, and mark the
+  Section 2 source line with ⚠️ noting it may be incomplete.
+- **Calendar / Granola MCP down:** retry once; if still failing, fall back to the daily
+  notes' `### Calendar` briefings and `# Meetings` links, and mark ⚠️. Never leave a
+  section blank — mark it ⚠️ and continue.
+- **Rocks config missing:** this command cannot run without it (Section 2 depends on it) —
+  stop and report.
+- **performance-analyst fails:** attempt inline gathering of the four sources (calendar
+  via Google Calendar MCP, completed tasks via daily-note markers, journaling via
+  `records/logs/daily/`, meetings via `records/meetings/`), note with ⚠️.
+
+### Retired orchestration
+
+The previous version of this command orchestrated four skills that are **no longer
+called** by `/review`: `performance-scorecard`, `calendar-audit`, `delegation-tracker`,
+`refocus-directive`. They remain in `skills/` for ad-hoc invocation. Before deleting any
+of them, confirm no other command (`goals`, `reflect`, `plan`) or the `cob` schedule
+depends on them.
