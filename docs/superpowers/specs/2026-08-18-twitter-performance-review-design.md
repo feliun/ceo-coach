@@ -203,10 +203,10 @@ is hit, note how many posts were not fetched.
 | `self_reply` | `true` when `type == reply` and `in_reply_to_user_id` equals the account's own id. Distinguishes a self-authored thread continuation from a reply to someone else. |
 | `thread_id` | `conversation_id`, used only for grouping. A **thread** is a set of two or more of the account's own posts sharing one `conversation_id` where every post after the first is a `self_reply`. Threads are reported as a grouping in the breakdowns, not as a `type`. |
 | `impressions` | `organic_metrics.impression_count`, falling back to `public_metrics.impression_count` |
-| `engagements` | `non_public_metrics.engagements`, falling back to the sum of likes + replies + retweets + quotes + bookmarks |
+| `engagements` | `non_public_metrics.engagements`, falling back to the sum of likes + replies + retweets + quotes + bookmarks. **X counts detail expands and clicks here, not just visible interactions** — a dry-run post showed 3,474 engagements against 348 visible ones. §5 must carry a note saying so, or readers will misread the engagement rate. |
 | `engagement_rate` | `engagements / impressions`, as a percentage to one decimal; `n/a` when impressions is 0 |
 | `profile_clicks` | `non_public_metrics.user_profile_clicks` |
-| `link_clicks` | `non_public_metrics.url_link_clicks`, absent when the post has no link |
+| `link_clicks` | `non_public_metrics.url_link_clicks`. **The field is frequently absent even for posts that do carry links** (confirmed in the 2026-08-18 dry run: 0 of 21 posts returned it, including two with `t.co` links). Absent is not zero — render the row as ⚠️ *not returned* rather than `0`, which would falsely assert nobody clicked. |
 
 **Aggregate:**
 
@@ -286,6 +286,12 @@ Reason: {xurl not installed | xurl not authenticated | API error: <detail>}
 - Retry a failed fetch once, then give up and mark ⚠️.
 - On HTTP 429, report the rate-limit reset time rather than retrying in a loop.
 - Never analyse, score, or recommend — that belongs to the command.
+
+**Vault traversal note (applies to the command, not the agent).** In this vault
+`records/meetings/` is a **symlink** to Google Drive. Any directory walk that
+resolves §6's citations must follow symlinks (`os.walk(..., followlinks=True)`,
+or shell `ls`/`find -L`); a default `os.walk` silently reports every meeting
+wikilink as broken. This bit the dry run's own verification script.
 
 ---
 
@@ -403,6 +409,12 @@ organic and non-public metrics.*
    ```
 
    First run: `**Followers: {N}** — baseline, no prior figure recorded.`
+
+   **As-of caveat.** X exposes no historical follower series, so the count is
+   always point-in-time at *run* time, not at window close. When the run date is
+   later than the window end — any backfilled or late review — append a ⚠️
+   naming both dates. Silently presenting a run-time count as the window-close
+   figure would misattribute growth to the wrong week.
 
 4. **Profile clicks line:**
 
