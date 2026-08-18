@@ -12,7 +12,7 @@ Scoring, calendar compliance, delegation tracking, and refocus directives are st
 
 | Command | Description |
 |---------|-------------|
-| `/review` | Descriptive review for a configurable time window (`--window`, default `7d`). Four neutral sections — time allocation, progress against rocks, fleeting thoughts, meeting themes — followed by an interpretive Overview generated last. Saved to `records/logs/weekly/DD-MM-YYYY.md`. |
+| `/review` | Descriptive review for a configurable time window (`--window`, default `7d`). Five neutral sections — time allocation, progress against rocks, fleeting thoughts, meeting themes, Twitter performance — then one prescriptive section of content recommendations, followed by an interpretive Overview generated last. Saved to `records/logs/weekly/DD-MM-YYYY.md`. |
 | `/reflect` | Guided reflection on a specific decision, event, or meeting. Reads context and asks hard questions. |
 | `/goals` | Review and update quarterly objectives (rocks). Check alignment between stated priorities and actual time allocation. |
 | `/plan` | Generate a weekly execution plan. Cross-references quarterly objectives, calendar availability, Asana tasks, and calendar rules to produce a day-by-day schedule with task assignments mapped to protected blocks and hat targets. |
@@ -35,6 +35,7 @@ Scoring, calendar compliance, delegation tracking, and refocus directives are st
 |-------|-------------|
 | `performance-analyst` | Gathers behavioral data (calendar, email, tasks, meetings, daily logs, plans) for a review window. `/review` consumes four of its slices — calendar, completed tasks, daily-note journaling, meeting notes — and ignores the rest. |
 | `week-planner` | Gathers calendar events, Asana tasks, and prior week's review/plan for weekly planning. |
+| `twitter-analyst` | Fetches X/Twitter account metrics and windowed post metrics via the `xurl` CLI. Two API calls per run. |
 
 ## Setup
 
@@ -122,3 +123,14 @@ Scoring, calendar compliance, delegation tracking, and refocus directives are st
    ```
 
    Run `/review` at the end of any window (week, month, quarter) to see what actually happened: where the hours went, which rocks moved, what you were thinking about, and what the four lenses together say when read as one story.
+### X / Twitter sections
+
+Sections 5 and 6 of `/review` need the [`xurl`](https://github.com/xdevplatform/xurl)
+CLI authenticated with OAuth 2.0 user context. Without it the two sections are replaced
+by a single ⚠️ line each and the rest of the review is unaffected. Post links resolve to
+vault notes when a `records/tweets/` directory exists (populated by wiki-manager's
+`/pull-tweets`), and to `x.com` otherwise.
+
+Note that X returns detailed engagement metrics only for posts under ~30 days old, and
+exposes no profile-visits metric at all — `/review` reports profile *clicks from posts*
+as an explicitly labelled proxy.
