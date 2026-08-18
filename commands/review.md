@@ -68,9 +68,9 @@ The two agents share no state and neither blocks the other. A `twitter-analyst`
 failure **must not block** Sections 1–4 or the Overview: on failure, render the ⚠️
 lines described under *Fallbacks & resilience* and continue.
 
-#### 3. Assemble the four descriptive sections
+#### 3. Assemble the five descriptive sections
 
-Build the sections **in this order** (1 → 4). Keep the tone neutral and factual — no
+Build the sections **in this order** (1 → 5). Keep the tone neutral and factual — no
 scoring, no drift-shaming. Each section states its own data source.
 
 **Wikilink rules (apply everywhere):**
@@ -81,6 +81,11 @@ scoring, no drift-shaming. Each section states its own data source.
 - **Completed tasks** → link to their raw Asana URL (from the daily-note task lines).
 - **Rocks** → plain text; pull rock names **verbatim** from `rocks.yaml`, never
   abbreviated.
+- **Posts** → wikilink to their vault note by tweet id when
+  `records/tweets/{tweet_id}.md` exists, aliased to the snippet
+  (`[[2088289040139173943|Uno de los tips profesionales…]]`); otherwise the markdown
+  link to the `x.com` URL. Mixed output within one table is expected — `/pull-tweets`
+  defaults to a 7-day window — and is never marked ⚠️.
 
 ##### Section 1 — Where I spent my time
 Source: calendar allocation. Group events into activity buckets (e.g. team weeklies &
@@ -113,6 +118,89 @@ Source: meeting transcripts (Granola notes in `records/meetings/`).
 - **No-note fallback:** if a meeting exists (calendar/Granola) but has no vault note yet,
   cite its raw title and mark *(meeting note not yet pulled)* instead of a broken
   wikilink.
+
+##### Section 5 — Twitter performance
+Source: the `twitter-analyst` report. **Descriptive only** — same register as
+Sections 1–4. Report, do not grade: no praise, no drift-shaming, no telling the reader
+what to do. Anything prescriptive **belongs to Section 6**.
+
+Open with the source line:
+
+```
+*Source: X API v2 via the `xurl` CLI (OAuth2 user context, @{username}) — organic and non-public metrics.*
+```
+
+Then, in order:
+
+1. **Headline.** `**{N} posts · {M} impressions · {E} engagements · {X}% engagement
+   rate.**` followed by the type split, naming self-replies and threads when present.
+
+2. **Totals table** — one row per metric (impressions, engagements, engagement rate,
+   likes, bookmarks, replies received, retweets, quotes, link clicks), with a
+   *Median per post* column. Medians matter because the distribution is heavily
+   **skewed** — one high-reach post distorts a mean. Render link clicks as
+   `⚠️ not returned` when the API omitted the field; never `0`, which would falsely
+   assert nobody clicked.
+
+3. **Followers line.**
+
+   ```
+   **Followers: {N}** — net {±D} vs {prior} recorded in [[DD-MM-YYYY]]. Following: {N}.
+   ```
+
+   With no prior figure: `**Followers: {N}** — baseline, no prior figure recorded.`
+
+   The prior figure comes from the most recent review file in `records/logs/weekly/`
+   whose basename does not start with `plan-` and whose date precedes this window's
+   end, matched on `followers=(\d+)` inside its `x-snapshot` anchor.
+
+   Follower counts are **point-in-time at *run* time** — X exposes no historical
+   series. When the run date is later than the window end (any backfilled or late
+   review), append a ⚠️ naming both dates, or growth gets attributed to the wrong week.
+
+4. **Profile clicks line.**
+
+   ```
+   **Profile clicks from posts: {N}** — ⚠️ API proxy. X does not expose total profile visits; the X Analytics dashboard is the only source for that.
+   ```
+
+5. **Split-by-type table** — posts, impressions, engagements and median engagement
+   rate per type, with each figure's share of the window total.
+
+6. **Per-post table**, sorted by impressions descending:
+
+   | Date | Type | Impressions | Eng. | Eng. rate | Bookmarks | Profile clicks | Post |
+
+   The `Post` cell holds the first ~60 characters as link text, resolved by the
+   wikilink rule above. Article posts show the article title instead.
+
+   **Inclusion rule.** List every original, quote, article and self-reply, plus any
+   reply to others with ≥**100 impressions**. Account for everything excluded in one
+   trailing line so nothing is silently dropped:
+
+   ```
+   *Plus {N} replies below 100 impressions ({M} impressions, {E} engagements combined).*
+   ```
+
+7. **Observations** — plain factual bullets, only what the data supports: the
+   original-vs-reply split in volume against the same split in impressions; threads
+   posted and their combined reach; the spread between the top post and the median;
+   days with no posts; language mix when more than one appears. Two caveats are
+   mandatory whenever the relevant data is present:
+   - ⚠️ **`engagements` is broader than it looks** — it counts **detail expands** and
+     clicks, not just likes, replies and retweets. Give the visible-interaction total
+     alongside it for the largest post so the engagement rate is not misread.
+   - ⚠️ **Link clicks not returned** when `url_link_clicks` was absent, noting that
+     absent is not zero.
+
+   "Originals were 29% of volume and 87% of impressions" is in register.
+   "Post more originals" is not — that **belongs to Section 6**.
+
+8. **Snapshot anchor**, as the section's final line:
+
+   ```
+   <!-- x-snapshot: followers={N} following={N} at={YYYY-MM-DD} -->
+   ```
 
 #### 4. Synthesize the Overview (generated LAST, placed LAST)
 
@@ -157,6 +245,9 @@ status: active
 
 ## 4. Other relevant information
 {Section 4}
+
+## 5. Twitter performance
+{Section 5}
 
 ## Overview — how the week went
 {Interpretive synthesis + main highlights, generated last}
