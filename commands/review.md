@@ -32,7 +32,12 @@ exist for ad-hoc use but are no longer orchestrated here — see `### Retired or
 Invoke `manifest-resolver` for domain `ceo-coach`. Resolve:
 - `rocks` (**required**) — quarterly objectives, KRs, weights, status.
 - `weekly-plans` (optional) — the `records/logs/weekly/` directory; this is where the
-  review is saved.
+  review is saved, and it is also the source of the previous run's follower figure for
+  Section 5. Its absence downgrades the follower delta to *baseline*; it never blocks
+  the run.
+- `tweets` (optional) — the `records/tweets/` directory, used to wikilink posts to
+  their vault notes in Sections 5 and 6. When it resolves nowhere, posts link to
+  `x.com` instead.
 
 The other manifest keys (`calendar-rules`, `delegation-log`, `leadership-framework`,
 `values`, `quarterly-plan`, `thinking-style`) are **not needed** by this command.
@@ -49,6 +54,19 @@ resolved `rocks` path for the window. This command only consumes four of its sli
 
 Emails, overdue tasks, weekly/quarterly plans, and fleeting-thought hubs the agent may
 also return are ignored here.
+
+Dispatch **both agents in parallel — two tool calls in a single message**:
+
+- `performance-analyst` (`agents/performance-analyst.md`) with the resolved `rocks`
+  path, as above.
+- `twitter-analyst` (`agents/twitter-analyst.md`) with `window_days`,
+  `target_date_iso`, and `tweets_folder` set to the resolved `tweets` path (or null).
+  Its account and post slices feed Section 5, and Section 6 reads the same data plus
+  the account bio it returns.
+
+The two agents share no state and neither blocks the other. A `twitter-analyst`
+failure **must not block** Sections 1–4 or the Overview: on failure, render the ⚠️
+lines described under *Fallbacks & resilience* and continue.
 
 #### 3. Assemble the four descriptive sections
 
@@ -154,9 +172,13 @@ Time tracked:  {N}h scheduled across {M} sessions
 Tasks done:    {N} completed
 Rocks:         {N} at 0% · Q3 {X}% vs {Y}% elapsed
 Meetings:      {N} synthesized
+X / Twitter:   {N} posts · {M} impressions · {X}% eng · {F} followers ({±D})
 File:          {path}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+When the analyst was unavailable, that line reads
+`X / Twitter:   ⚠️ unavailable ({reason})` instead.
 
 ---
 
@@ -174,6 +196,21 @@ File:          {path}
 - **performance-analyst fails:** attempt inline gathering of the four sources (calendar
   via Google Calendar MCP, completed tasks via daily-note markers, journaling via
   `records/logs/daily/`, meetings via `records/meetings/`), note with ⚠️.
+- **`xurl` missing or unauthenticated:** omit Sections 5 and 6 entirely, replacing each
+  with a single ⚠️ line naming the reason (`xurl not installed` /
+  `xurl not authenticated`) and the fix (install `xurl`, or run `xurl auth`).
+  Sections 1–4 and the Overview proceed unaffected.
+- **X API errors or rate limits:** render Section 5 with whatever slices returned,
+  marking the missing ones ⚠️. If only the account fetch succeeded, Section 5 carries
+  the follower line and the snapshot anchor alone — the anchor is emitted whenever the
+  account fetch succeeds, so a failed posts fetch never breaks the *next* run's delta —
+  and Section 6 is skipped with a ⚠️, because recommendations without performance data
+  would be ungrounded.
+- **Window longer than 30 days:** Section 5 renders from `public_metrics` only. The
+  engagements, engagement-rate, profile-clicks and link-clicks rows are marked ⚠️ *not
+  available beyond 30 days*. This is an X platform limit, not an auth problem.
+- **No prior review carrying an `x-snapshot` anchor:** the follower line reads
+  *baseline — no prior figure recorded*. This is not an error and is not marked ⚠️.
 
 ### Retired orchestration
 
