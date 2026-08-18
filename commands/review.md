@@ -1,18 +1,21 @@
 ---
 name: ceo-coach:review
 description: >
-  Descriptive weekly review for a configurable time window. Aggregates four lenses —
+  Descriptive weekly review for a configurable time window. Aggregates five lenses —
   time allocation (calendar), progress (completed tasks + rocks), fleeting thoughts
-  (daily-note journaling), and relevant info (meeting transcripts) — then synthesizes
-  an interpretive Overview. Period-agnostic — the user decides when to run it.
+  (daily-note journaling), relevant info (meeting transcripts), and X/Twitter
+  performance — then adds content recommendations and synthesizes an interpretive
+  Overview. Period-agnostic — the user decides when to run it.
 ---
 
 ## Command: ceo-coach:review
 
-Produces a **descriptive** weekly review: four neutral "here's what happened" lenses,
-followed by a single interpretive Overview. This command deliberately does NOT score,
-audit the calendar against rules, or issue a refocus directive — it reports and
-synthesizes, it does not grade. (The scoring/audit/delegation/refocus skills still
+Produces a **descriptive** weekly review: five neutral "here's what happened" lenses,
+one prescriptive section of content recommendations, and a single interpretive
+Overview. This command deliberately does NOT score, audit the calendar against rules,
+or issue a refocus directive — it reports and synthesizes, it does not grade. Section 6
+is the sole exception: it prescribes, and it is fenced off from the descriptive
+sections and from the Overview for exactly that reason. (The scoring/audit/delegation/refocus skills still
 exist for ad-hoc use but are no longer orchestrated here — see `### Retired orchestration`.)
 
 ---
@@ -202,9 +205,74 @@ Then, in order:
    <!-- x-snapshot: followers={N} following={N} at={YYYY-MM-DD} -->
    ```
 
+#### 3b. Assemble Section 6 — Content recommendations
+
+This is **the one prescriptive section** in the review, and the single exception to
+the describe-before-interpret rule. Generate it after Sections 1–5 exist and
+**before the Overview**. It is a sibling of the Overview, not an input to it:
+**Section 6 is not an input to the Overview**, and the Overview must not restate its
+recommendations.
+
+Grounded in Section 5's performance data crossed with the window's raw material from
+Sections 1–4, the account bio returned by `twitter-analyst`, and `rocks.yaml`. Open
+with:
+
+```
+*Source: §5 performance data crossed with this window's calendar, completed work, journaling, and meeting themes. Positioning from the X bio and `rocks.yaml`.*
+```
+
+Then state once, not per bullet, that with a handful of posts the attributions are
+**hypotheses** rather than conclusions.
+
+Contents, in order:
+
+1. **What worked** — 2–3 bullets, each naming a specific post with its real numbers
+   and the attribute that plausibly drove it (format, hook, topic, language,
+   specificity).
+
+2. **What didn't** — 2–3 bullets, same discipline, including the cost of any pattern
+   the data shows to be low-yield.
+
+3. **Post ideas — 5 to 7**, each rendered as:
+
+   ```
+   **{Working title}**
+   - *Angle:* {the specific claim or story}
+   - *From:* {evidence, wikilinked — [[DD-MM-YYYY]] or [[YYYY-MM-DD slug]]}
+   - *Format:* text / thread / article / quote-with-take / poll
+   - *Mechanism:* bookmarkable insight / contrarian take / build-in-public number / teardown / question that invites replies
+   ```
+
+   Framing constraints, applied to every idea:
+   - **Audience:** **technical** — engineers, CTOs, founders. Concrete over abstract;
+     a real number or a real decision beats a general observation.
+   - **Positioning:** taken from the **X bio** returned by the analyst, plus
+     `rocks.yaml`. Demonstrate competence through specifics of the work rather than
+     advertising services — what the company *learned* is content, what it *sells*
+     is not.
+   - **Goal:** follower growth. Prefer angles that give a stranger a reason to follow:
+     a repeatable point of view, an ongoing build, numbers nobody else publishes.
+
+4. **What not to post** — at most one or two bullets, and only when Section 5's data
+   supports it. Omit the subsection rather than pad it.
+
+**Hard rules:**
+
+- Every idea traces to cited evidence from the window, or is explicitly labelled
+  *(evergreen — not from this window)*. **Never invent** an event, a meeting, a
+  number, or a customer.
+- Meeting notes are a source of *themes*, not of quotable client detail. Any idea
+  drawn from a client conversation carries an explicit ⚠️ **anonymise** note stating
+  what must be stripped — client name, identifying technical detail, named people.
+- Posts named anywhere in this section's prose are linked by the same rule as
+  Section 5's table. **A post mentioned by description alone**, with no link, is a
+  defect — the reader cannot check the claim against the post.
+- **Cap at 7** ideas. If the window's raw material supports only 3, produce 3 and say
+  the window was thin. Padding to a quota fabricates.
+
 #### 4. Synthesize the Overview (generated LAST, placed LAST)
 
-After sections 1–4 exist, write a short **Overview** as the final section. This is the
+After Sections 1–5 exist, write a short **Overview** as the final section. This is the
 one interpretive part of the review — a synthesis *over* the four data sections, not an
 independent fetch. It must:
 - Characterize the week in a sentence or two (e.g. "a strategy-and-alignment week, not a
@@ -214,6 +282,9 @@ independent fetch. It must:
   alone.
 - List the **main highlights** (3–6 bullets), each wikilinked to its supporting
   meeting/daily note.
+- Draw only on Sections 1–5. The Overview may note where content activity converges
+  with the calendar, the rocks or the journaling, but **Section 6 is not an input to
+  the Overview** and its recommendations must not be restated there.
 
 Keep it honest and direct (board-advisor tone) but grounded strictly in the gathered
 data — never invent.
@@ -248,6 +319,9 @@ status: active
 
 ## 5. Twitter performance
 {Section 5}
+
+## 6. Content recommendations
+{Section 6}
 
 ## Overview — how the week went
 {Interpretive synthesis + main highlights, generated last}
