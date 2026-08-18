@@ -135,13 +135,48 @@ Rationale: zero new files, zero new manifest keys, and the value is visible in
 the same document a human reads. The HTML comment (rather than parsing prose)
 keeps the parse target stable against later prose edits.
 
-### 3.3 Configuration: none
+### 3.3 Configuration: one optional manifest key
 
-No new manifest keys. Identity, follower counts, and positioning all come from
-`xurl /2/users/me`. The bio is the positioning source — the user's reads
-*"CEO en Orbitant. Padre de 2. Emprendimiento y tecnología. Construyendo una
-consultora de software AI Native."* — which keeps the plugin portable for any
-other user without a config file to fill in.
+Identity, follower counts, and positioning all come from `xurl /2/users/me`. The
+bio is the positioning source — the user's reads *"CEO en Orbitant. Padre de 2.
+Emprendimiento y tecnología. Construyendo una consultora de software AI Native."*
+— which keeps the plugin portable without a config file to fill in.
+
+One key is added, because §5 and §6 link posts to their vault notes where those
+exist (§3.4):
+
+```yaml
+  tweets:
+    description: "Directory of pulled X/Twitter post notes, one per post, named {tweet_id}.md"
+    paths:
+      - $WORKSPACE/records/tweets/
+    required: false
+    format: directory
+    note: "Populated by wiki-manager's /pull-tweets. When absent, §5 and §6 link posts to x.com instead."
+```
+
+Optional by design: the plugin must work for a user who has no such vault
+folder, and the fallback is lossless — an x.com URL instead of a wikilink.
+
+### 3.4 Post references: vault note first, x.com as fallback
+
+Every reference to a post — in the §5 table and in §6's prose alike — resolves in
+this order:
+
+1. **`records/tweets/{tweet_id}.md` exists** → wikilink it, aliased to the
+   snippet: `[[2088289040139173943|Uno de los tips profesionales…]]`. Posts are
+   vault objects like meetings and daily notes, so they should behave like them:
+   clickable inside Obsidian, backlinked from the post note, and traversable
+   without leaving the vault.
+2. **No such file** → the markdown link to `https://x.com/{username}/status/{id}`.
+
+The vault folder is flat and named by immutable tweet id, so the lookup is a
+single `os.path.exists` per post with no scanning or fuzzy matching.
+
+Mixed output is normal and expected: `/pull-tweets` defaults to a 7-day window,
+so a `--window 30d` review will link recent posts to notes and older ones to
+x.com. Both forms may appear in the same table; neither is an error and neither
+is marked ⚠️.
 
 ---
 
@@ -157,8 +192,13 @@ Data to Fetch, Output, Resilience.
 |---|---|
 | `window_days` | Number of days to look back |
 | `target_date_iso` | End date, `YYYY-MM-DD` |
+| `tweets_folder` | Absolute path to the resolved `tweets` directory, or null when the manifest key resolves nowhere |
 
 No `username` input — resolved from `/2/users/me`.
+
+Resolving the note per post belongs here rather than in the command, mirroring
+`performance-analyst`, which already returns meeting-note basenames and a
+`note: null` for meetings that have none.
 
 ### 4.2 Preflight
 
@@ -199,6 +239,7 @@ is hit, note how many posts were not fetched.
 | Derived field | Rule |
 |---|---|
 | `url` | `https://x.com/{username}/status/{id}` |
+| `vault_note` | `{tweet_id}` when `{tweets_folder}/{tweet_id}.md` exists, else `null`. Null is a normal result, not a warning — the consumer falls back to `url` per §3.4. Always `null` when `tweets_folder` is null. |
 | `type` | Exactly one value, assigned by this precedence, first match wins: `article` if the post carries an `article` object → `reply` if `referenced_tweets` contains `replied_to` → `quote` if it contains `quoted` → `original` otherwise. Mutually exclusive by construction, so the type counts always sum to the post total. |
 | `self_reply` | `true` when `type == reply` and `in_reply_to_user_id` equals the account's own id. Distinguishes a self-authored thread continuation from a reply to someone else. |
 | `thread_id` | `conversation_id`, used only for grouping. A **thread** is a set of two or more of the account's own posts sharing one `conversation_id` where every post after the first is a `self_reply`. Threads are reported as a grouping in the breakdowns, not as a `type`. |
@@ -248,7 +289,7 @@ Metrics tier: organic + non-public / public-only ⚠️ (window exceeds 30 days)
 - Median impressions: N · Median engagement rate: X%
 
 ### Posts
-[{id, url, created_at, type, self_reply, thread_id, lang, impressions,
+[{id, url, vault_note, created_at, type, self_reply, thread_id, lang, impressions,
   engagements, engagement_rate, likes, replies, retweets, quotes, bookmarks,
   link_clicks, profile_clicks, text (first 120 chars), article_title (if any)}]
 
@@ -317,8 +358,9 @@ State explicitly that a `twitter-analyst` failure must not block §1–4.
 Retitle from "the four descriptive sections" to "the five descriptive sections".
 Sections 1–4 unchanged. Wikilink rules gain one entry:
 
-- **Posts** → link to their `x.com` URL (never a wikilink; posts are not vault
-  notes).
+- **Posts** → wikilink to their vault note by tweet id when
+  `records/tweets/{tweet_id}.md` exists, aliased to the snippet; otherwise the
+  markdown link to the `x.com` URL. See §3.4.
 
 Add the §5 subsection specified in §6 of this document.
 
@@ -429,8 +471,9 @@ organic and non-public metrics.*
    | Date | Type | Impressions | Eng. | Eng. rate | Post |
    |---|---|---|---|---|---|
 
-   The `Post` cell holds the first ~60 characters as the link text, linked to the
-   `x.com` URL. Article posts show the article title instead.
+   The `Post` cell holds the first ~60 characters as the link text, resolved per
+   §3.4 — `[[{tweet_id}|snippet]]` when the vault note exists, the `x.com`
+   markdown link otherwise. Article posts show the article title instead.
 
    **Inclusion rule.** Replies are the bulk of the volume and most of them are
    conversational one-liners, so an unfiltered table would bury the signal. The
@@ -510,6 +553,11 @@ work, journaling, and meeting themes. Positioning from the X bio and
 4. **What not to post** — at most one or two bullets, and only when §5's data
    supports it. Omit the subsection rather than pad it.
 
+Posts named anywhere in §6's prose — in *What worked*, *What didn't*, *What not
+to post*, or inside an idea's *From:* line — are linked by the same §3.4 rule as
+§5's table. A post mentioned by description alone, with no link, is a defect: the
+reader cannot check the claim against the post.
+
 **Hard rules:**
 
 - Every idea traces to cited evidence from the window, or is explicitly labelled
@@ -573,7 +621,7 @@ under-counts posts would be worse than no section.
 
 - Snapshot files, follower-list pagination, and named gained/lost followers.
 - Any coupling to the `content-editor` plugin's voice or pillar references.
-- New manifest keys or config files.
+- New config files. (One optional manifest key, `tweets`, is added — see §3.3.)
 - Posting, scheduling, or drafting actual tweet copy. §6 produces angles and
   briefs, not finished posts.
 - Bookmarks, mentions, DMs, and the home timeline.
