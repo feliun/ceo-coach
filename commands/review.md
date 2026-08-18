@@ -371,9 +371,13 @@ When the analyst was unavailable, that line reads
   account fetch succeeds, so a failed posts fetch never breaks the *next* run's delta —
   and Section 6 is skipped with a ⚠️, because recommendations without performance data
   would be ungrounded.
-- **Window longer than 30 days:** Section 5 renders from `public_metrics` only. The
-  engagements, engagement-rate, profile-clicks and link-clicks rows are marked ⚠️ *not
-  available beyond 30 days*. This is an X platform limit, not an auth problem.
+- **Detailed metrics missing on some or all posts:** Section 5 renders from
+  `public_metrics` for those posts, and the engagements, engagement-rate,
+  profile-clicks and link-clicks figures are marked ⚠️ *not available for {N} posts*.
+  This is an X platform limit, not an auth problem. Two causes, and the section should
+  name whichever applies: posts older than roughly **90 days** (measured, not the ~30
+  the docs imply), and **retweets**, which never carry organic metrics at any age.
+  Never render a missing metric as `0`.
 - **No prior review carrying an `x-snapshot` anchor:** the follower line reads
   *baseline — no prior figure recorded*. This is not an error and is not marked ⚠️.
 

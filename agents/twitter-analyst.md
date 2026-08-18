@@ -62,7 +62,11 @@ where `{start}` is `target_date_iso` minus `window_days` and `{end}` is `target_
 
 Paginate while `meta.next_token` is present, appending `&pagination_token={next_token}`. **Cap at 10 pages** as a runaway guard; if the cap is hit, report how many posts went unfetched.
 
-**Metrics tier.** `organic_metrics` and `non_public_metrics` are returned by X only for posts under ~30 days old. If `window_days` > 30, expect them to be absent on older posts: fall back to `public_metrics`, and set the metrics tier to `public-only ⚠️`.
+**Metrics tier — decide per post, from what actually returned.** Do not predict the tier from `window_days`. For each post, use `organic_metrics` / `non_public_metrics` when present and fall back to `public_metrics` when absent, then report the tier as `organic + non-public` if every post carried them, `mixed ⚠️` if some did, `public-only ⚠️` if none did.
+
+Two causes of absence, measured on 2026-08-18 against this account:
+- **Age.** Detailed metrics were present at 78 days old and gone by 103, so the practical retention boundary is around **90 days** — not the ~30 the X docs imply. Deriving the tier from what returned rather than from a hardcoded constant makes this robust whatever the real number is.
+- **Retweets.** A `retweet` never carries organic or non-public metrics at any age. This is a property of the type, not of the window. Exclude retweets from engagement-rate aggregates rather than treating them as zero-engagement posts, and report their count separately.
 
 ---
 
@@ -74,7 +78,7 @@ Paginate while `meta.next_token` is present, appending `&pagination_token={next_
 |-------|------|
 | `url` | `https://x.com/{username}/status/{id}` |
 | `vault_note` | `{tweet_id}` when `{tweets_folder}/{tweet_id}.md` exists, else `null`. Null is a normal result, not a warning — the consumer falls back to `url`. Always `null` when `tweets_folder` is null. |
-| `type` | Exactly one value, by this precedence, first match wins: `article` if the post carries an `article` object → `reply` if `referenced_tweets` contains `replied_to` → `quote` if it contains `quoted` → `original` otherwise. Mutually exclusive by construction, so the type counts always sum to the post total. |
+| `type` | Exactly one value, by this precedence, first match wins: `retweet` if `referenced_tweets` contains `retweeted` → `article` if the post carries an `article` object → `reply` if it contains `replied_to` → `quote` if it contains `quoted` → `original` otherwise. Mutually exclusive by construction, so the type counts always sum to the post total. **`retweeted` must be checked first**: a retweet carries no other reference type, so omitting it silently classifies retweets as originals and corrupts the originals-vs-replies split. |
 | `self_reply` | `true` when `type == reply` and `in_reply_to_user_id` equals the account's own id. Distinguishes a self-authored thread continuation from a reply to someone else. |
 | `thread_id` | `conversation_id`, used only for grouping. |
 | `impressions` | `organic_metrics.impression_count`, falling back to `public_metrics.impression_count` |
@@ -89,7 +93,7 @@ Paginate while `meta.next_token` is present, appending `&pagination_token={next_
 - Window engagement rate: total engagements / total impressions.
 - **Median** impressions and median engagement rate. Medians, not means — the distribution is heavily skewed and a single high-reach post distorts a mean.
 - Top 3 by impressions. Top 3 by engagement rate **among posts with ≥100 impressions** (the floor stops a 12-impression reply with one like ranking first). Bottom 3 originals by impressions.
-- Split by `type`: count, impressions, engagements, median engagement rate. The counts must sum to the post total — a mismatch is a bug, not rounding.
+- Split by `type`: count, impressions, engagements, median engagement rate. The counts must sum to the post total — a mismatch is a bug, not rounding. Retweets are reported as their own row and excluded from engagement-rate maths, since X returns no organic metrics for them.
 - Replies split into self-replies (thread continuations) and replies to others. The raw reply count conflates two different activities.
 - **Threads:** a thread is two or more of the account's own posts sharing one `conversation_id` where every post after the first is a `self_reply`. Report count, posts per thread, combined impressions.
 - Split by `lang`: count and impressions.
@@ -105,10 +109,10 @@ Paginate while `meta.next_token` is present, appending `&pagination_token={next_
 Window: {start} → {end} ({N} days)
 Account: @{username} · {followers} followers · {following} following
 Bio: {description}
-Metrics tier: organic + non-public / public-only ⚠️ (window exceeds 30 days)
+Metrics tier: organic + non-public | mixed ⚠️ | public-only ⚠️ ({N} posts lacking detailed metrics: {M} too old, {R} retweets})
 
 ### Totals
-- Posts: N (originals: N, replies: N [self: N, to others: N], quotes: N, articles: N)
+- Posts: N (originals: N, replies: N [self: N, to others: N], quotes: N, articles: N, retweets: N)
 - Threads: N (spanning N posts)
 - Impressions: N · Engagements: N · Engagement rate: X%
 - Likes: N · Replies: N · Retweets: N · Quotes: N · Bookmarks: N
