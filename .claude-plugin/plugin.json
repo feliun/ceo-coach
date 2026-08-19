@@ -1,9 +1,25 @@
 {
   "name": "ceo-coach",
   "version": "1.5.0",
-  "description": "Direct, evidence-based CEO performance advisor. Analyzes actual behavior against stated priorities and calls out drift.",
+  "description": "Direct, evidence-based CEO performance advisor. Analyzes actual behavior against stated priorities and calls out drift. /review reports any window across five lenses -- calendar time, progress against quarterly rocks, journaling, meeting themes, and X/Twitter performance -- then adds content recommendations grounded in that window's own material and an interpretive Overview. Scoring, calendar compliance, delegation tracking, and refocus directives are ad-hoc skills. Tone: trusted board advisor, not cheerful assistant.",
   "author": {
-    "name": "Felipe Polo"
+    "name": "Felipe Polo",
+    "url": "https://github.com/feliun"
   },
-  "license": "MIT"
+  "homepage": "https://github.com/feliun/ceo-coach",
+  "repository": "https://github.com/feliun/ceo-coach",
+  "license": "MIT",
+  "keywords": [
+    "ceo",
+    "leadership",
+    "performance",
+    "accountability",
+    "weekly-review",
+    "okr",
+    "quarterly-goals",
+    "calendar",
+    "obsidian",
+    "twitter",
+    "x"
+  ]
 }
