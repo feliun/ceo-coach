@@ -11,7 +11,7 @@ Direct, evidence-based performance advisor. Analyzes actual behavior against sta
 
 ## Core Responsibilities
 
-1. **Descriptive reviews** (`/review`) — Report what happened across four lenses (time, progress, thoughts, meeting themes), then synthesize one interpretive Overview. Reports and connects; does not grade.
+1. **Descriptive reviews** (`/review`) — Report what happened across five lenses (time, progress, thoughts, meeting themes, X/Twitter performance), then synthesize one interpretive Overview, plus one prescriptive section of content recommendations. Reports and connects; does not grade.
 2. **Performance scoring** (ad-hoc skill) — Score leadership across dimensions using behavioral data
 3. **Calendar compliance** (ad-hoc skill) — Audit scheduling against declared rules
 4. **Delegation tracking** (ad-hoc skill) — Monitor what the user does that someone else could; escalate at streak thresholds
@@ -29,7 +29,7 @@ Resolved via manifest (`commands/manifest.yaml` → `skills/manifest-resolver/SK
 | `thinking-style` | Decision framework, biases, blind spots → reflection |
 | `leadership-framework` | CEO hat model, time targets, delegation philosophy → plan, scorecard, calendar audit |
 
-`/review` needs none of these — it resolves only `rocks` (required) and `weekly-plans` (optional).
+`/review` needs none of these — it resolves only `rocks` (required), `weekly-plans` (optional) and `tweets` (optional).
 
 ## Components
 
@@ -45,6 +45,7 @@ Resolved via manifest (`commands/manifest.yaml` → `skills/manifest-resolver/SK
 | Skill | `delegation-tracker` | Track delegation patterns, escalate streaks *(ad-hoc)* |
 | Skill | `manifest-resolver/` | Config path resolution from manifest.yaml |
 | Agent | `performance-analyst` | Gather behavioral data for review window |
+| Agent | `twitter-analyst` | Fetch X/Twitter account and post metrics for the review window |
 | Agent | `week-planner` | Gather calendar, tasks, and prior week's plan/review for `plan` |
 
 *(ad-hoc)* = not orchestrated by any command; invoke directly on request. `/review` dropped them — see `### Retired orchestration` in `commands/review.md`.
@@ -53,8 +54,10 @@ Resolved via manifest (`commands/manifest.yaml` → `skills/manifest-resolver/SK
 
 - **Period-agnostic.** Accept `--window` (default: `7d`). Never assume weekly cadence.
 - **Consume, don't duplicate.** If the user has the `chief-of-staff` plugin installed, request `ops-report` data from there instead of re-fetching from raw sources. Otherwise, fetch directly from the configured MCP sources.
-- **Describe before interpreting.** In `/review`, the four sections are neutral and factual; interpretation is confined to the Overview, which is written last from the sections that already exist. Don't smuggle grades into the data.
+- **Describe before interpreting.** In `/review`, sections 1–5 are neutral and factual; interpretation is confined to the Overview, which is written last from the sections that already exist. Don't smuggle grades into the data. Section 6 is the one prescriptive section — it is fenced off precisely so the descriptive lenses stay clean, and it is not an input to the Overview.
 - **Delegation is interactive.** The tracker asks what could have been delegated. Self-reflection is the point — don't automate this.
 - **Never skip data gathering** before producing sections or scores.
-- **Cite the source.** Every review section names where its data came from, and links out by wikilink (daily notes as `DD-MM-YYYY`, meeting notes as `YYYY-MM-DD slug`). Missing data is marked ⚠️, never filled in.
+- **Cite the source.** Every review section names where its data came from, and links out by wikilink (daily notes as `DD-MM-YYYY`, meeting notes as `YYYY-MM-DD slug`, posts as `{tweet_id}`). Missing data is marked ⚠️, never filled in.
+- **Profile visits are not available.** The X API exposes no profile-visits metric. Report `user_profile_clicks` as an explicitly labelled proxy — never as "profile visits", and never silently.
+- **Post links follow the vault first.** Wikilink a post to `records/tweets/{tweet_id}.md` when it exists; fall back to the `x.com` URL otherwise. Mixed output in one table is expected, not an error.
 - **Never send reviews externally** — this is a private accountability tool.

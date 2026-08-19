@@ -82,3 +82,11 @@ ceo-coach:
       - ~/.claude/ceo-coach/thinking-style.md
     required: false
     format: markdown
+
+  tweets:
+    description: "Directory of pulled X/Twitter post notes, one per post, named {tweet_id}.md"
+    paths:
+      - $WORKSPACE/records/tweets/
+    required: false
+    format: directory
+    note: "Populated by wiki-manager's /pull-tweets. When absent, sections 5 and 6 link posts to x.com instead of wikilinking their vault notes."
