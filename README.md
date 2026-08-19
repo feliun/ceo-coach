@@ -4,7 +4,9 @@
 
 ## What it does
 
-CEO Coach is a performance mirror for founders and executives. `/review` aggregates four lenses over any window — where the time went (calendar), how you progressed (completed tasks + rocks), your fleeting thoughts (daily-note journaling), and other relevant information (meeting transcripts) — then closes with an interpretive Overview that names where those sources converge. It reports and synthesizes; it deliberately does not grade.
+CEO Coach is a performance mirror for founders and executives. `/review` aggregates five lenses over any window — where the time went (calendar), how you progressed (completed tasks + rocks), your fleeting thoughts (daily-note journaling), other relevant information (meeting transcripts), and how your X/Twitter posting performed — then closes with an interpretive Overview that names where those sources converge. It reports and synthesizes; it deliberately does not grade.
+
+The one exception is a prescriptive Section 6, which turns the week's own raw material into concrete content ideas. It is fenced off from the five descriptive lenses on purpose, and it is not an input to the Overview.
 
 Scoring, calendar compliance, delegation tracking, and refocus directives are standalone skills you invoke when you want them — `/review` no longer orchestrates them. Either way: zero flattery. Think trusted board advisor, not cheerful assistant.
 
@@ -61,7 +63,7 @@ Scoring, calendar compliance, delegation tracking, and refocus directives are st
    | Command | Required MCP servers |
    |---------|---------------------|
    | `/plan` | Asana (task fetch) + Google Calendar (availability) |
-   | `/review` | Google Calendar (time allocation) + Granola (meeting transcripts) + Asana (completed tasks, optional) |
+   | `/review` | Google Calendar (time allocation) + Granola (meeting transcripts) + Asana (completed tasks, optional). Sections 5–6 additionally need the `xurl` CLI — not an MCP server, see step 4 |
    | `/reflect`, `/goals` | None required (operate on local files) |
 
    `/review` degrades rather than fails: Asana's search endpoint is premium-gated, so when the completed-tasks query returns `payment_required` the command derives completed tasks from the daily notes' `✅ Cleared` markers and flags that section ⚠️. A calendar or Granola outage falls back to the daily notes' `### Calendar` and `# Meetings` sections the same way. Only a missing `rocks.yaml` stops it.
@@ -81,7 +83,24 @@ Scoring, calendar compliance, delegation tracking, and refocus directives are st
 
    If you only use the Google Calendar MCP server, the fallback is never invoked and `gws` is optional. If neither is available, the calendar section of `/plan` reports ⚠️ and the rest of the plan still runs.
 
-4. **Configure your goals and rules.**
+4. **Install `xurl` (required only for Sections 5 and 6).**
+
+   The `twitter-analyst` agent reads the X API through the [`xurl`](https://github.com/xdevplatform/xurl) CLI, authenticated with **OAuth 2.0 user context** — organic and non-public metrics are only available to the account that owns the posts.
+
+   ```
+   xurl auth oauth2          # one-time browser flow
+   xurl /2/users/me          # confirm it returns your account
+   ```
+
+   Without it, Sections 5 and 6 are each replaced by a single ⚠️ line and the rest of the review is unaffected. Two API calls per run, well inside the free rate limits.
+
+   Three limits worth knowing, all measured rather than taken from the docs:
+
+   - **Profile visits are not exposed by the API at all.** `/review` reports `user_profile_clicks` (clicks to your profile *from your posts*) as an explicitly labelled proxy. The X Analytics dashboard is the only source for true visit counts.
+   - **Detailed metrics expire at roughly 90 days.** Beyond that only `public_metrics` comes back, and the affected rows are marked ⚠️ rather than rendered as `0`. Retweets never carry detailed metrics at any age.
+   - **`engagements` is broader than it looks** — it counts detail expands and clicks, not just likes, replies and retweets, so it runs well above the visible interaction total.
+
+5. **Configure your goals and rules.**
 
    The `config/` directory ships `.example` templates. Copy each one, drop the `.example` suffix, then edit:
 
@@ -101,36 +120,40 @@ Scoring, calendar compliance, delegation tracking, and refocus directives are st
    - `references/thinking-style.md` — how you reason, your biases, depth calibration
    - `references/leadership-framework.md` — your CEO model: role hats, time targets, delegation philosophy
 
-   Finally, point `commands/manifest.yaml` at the locations you chose if they differ from the defaults.
+   Finally, point `commands/manifest.yaml` at the locations you chose if they differ from the defaults. Every path the plugin touches is resolved through that manifest — nothing is hardcoded — so a differently-shaped vault only needs the manifest edited, not the commands.
 
-5. **Check the vault layout `/review` reads from.**
+   | Manifest key | Required | Used by |
+   |---|---|---|
+   | `rocks` | **yes** | `/review`, `/plan`, `/goals`, scorecard |
+   | `calendar-rules` | no | `/plan`, `calendar-audit` |
+   | `delegation-log` | no | `delegation-tracker` |
+   | `values` | no | `/goals`, scorecard |
+   | `thinking-style` | no | `/reflect` |
+   | `leadership-framework` | no | `/plan`, scorecard, `calendar-audit` |
+   | `weekly-plans` | no | `/review` (save location, follower baseline), `/plan` |
+   | `quarterly-plan` | no | `/plan` |
+   | `tweets` | no | `/review` §5–§6 post wikilinks |
 
-   `/review` sources three of its four sections from files in your workspace, so the paths have to match:
+6. **Check the vault layout `/review` reads from.**
+
+   `/review` and `/plan` read and write these workspace paths, so they have to match:
 
    | Path | Used for |
    |------|----------|
    | `records/logs/daily/DD-MM-YYYY.md` | Section 3 — the `# Journaling` and `# Free Thinking` sections; also the fallback source for calendar and completed tasks |
    | `records/meetings/YYYY-MM-DD slug.md` | Section 4 — meeting transcript synthesis |
-   | `records/logs/weekly/` | Where the finished review is saved (`weekly-plans` in the manifest), alongside `/plan` output |
+   | `records/tweets/{tweet_id}.md` | Sections 5 and 6 — wikilink targets for your posts (`tweets` in the manifest, **optional**). Populated by wiki-manager's `/pull-tweets`; when absent, posts link to `x.com` instead |
+   | `records/logs/weekly/` | Where the finished review is saved (`weekly-plans` in the manifest), alongside `/plan` output (`plan-DD-MM-YYYY.md`). Also holds the previous run's follower count, so the net follower delta needs no separate state file |
+   | `records/logs/quarterly/qN-YYYY.md` | `/plan` only — the quarterly execution plan for the quarter named in `rocks.yaml` (`quarterly-plan` in the manifest, **optional**). Absent means `/plan` falls back to rock weights without monthly targets |
 
-   Reviews wikilink out to those notes (`[[05-08-2026]]`, `[[2026-08-06 pilares-de-contenido]]`), so they read as a navigable index in Obsidian. A meeting on the calendar with no note yet is cited by raw title and marked *(meeting note not yet pulled)* rather than linked.
+   Reviews wikilink out to those notes (`[[05-08-2026]]`, `[[2026-08-06 pilares-de-contenido]]`, `[[2088289040139173943|post snippet]]`), so they read as a navigable index in Obsidian. A meeting on the calendar with no note yet is cited by raw title and marked *(meeting note not yet pulled)* rather than linked. A post with no note yet falls back to its `x.com` URL — mixed link styles in one table are expected, not an error.
 
-6. **First run.**
+7. **First run.**
 
    ```
    /goals    # set or review your quarterly objectives
    /plan     # generate a weekly schedule grounded in those objectives
    ```
 
-   Run `/review` at the end of any window (week, month, quarter) to see what actually happened: where the hours went, which rocks moved, what you were thinking about, and what the four lenses together say when read as one story.
-### X / Twitter sections
+   Run `/review` at the end of any window (week, month, quarter) to see what actually happened: where the hours went, which rocks moved, what you were thinking about, how your posting landed, and what the five lenses together say when read as one story.
 
-Sections 5 and 6 of `/review` need the [`xurl`](https://github.com/xdevplatform/xurl)
-CLI authenticated with OAuth 2.0 user context. Without it the two sections are replaced
-by a single ⚠️ line each and the rest of the review is unaffected. Post links resolve to
-vault notes when a `records/tweets/` directory exists (populated by wiki-manager's
-`/pull-tweets`), and to `x.com` otherwise.
-
-Note that X returns detailed engagement metrics only for posts under ~30 days old, and
-exposes no profile-visits metric at all — `/review` reports profile *clicks from posts*
-as an explicitly labelled proxy.
