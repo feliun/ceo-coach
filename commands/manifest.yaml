@@ -49,6 +49,15 @@ ceo-coach:
     required: false
     format: markdown
 
+  essentialism-framework:
+    description: "Essentialism lens — power law, 90% rule, essential intent, diagnostic signals"
+    paths:
+      - $WORKSPACE/system/memory/principles/Essentialism.md
+      - references/essentialism-framework.md
+      - ~/.claude/ceo-coach/essentialism-framework.md
+    required: true
+    format: markdown
+
   values:
     description: "Core philosophy, professional values, decision-making priorities"
     paths:

@@ -8,6 +8,8 @@ CEO Coach is a performance mirror for founders and executives. `/review` aggrega
 
 The one exception is a prescriptive Section 6, which turns the week's own raw material into concrete content ideas. It is fenced off from the five descriptive lenses on purpose, and it is not an input to the Overview.
 
+Where `/review` looks backwards, `/essential` looks at what you are about to commit to. It runs your goals, your week, or a single opportunity through the Essentialism framework: one criterion, a 0–100 score on it, and anything under 90 collapses to zero. It is deliberately slow and deliberately interactive — the agent proposes the scores and asks the trade-off questions one at a time, but you make the cut. You finish with fewer commitments and one measurable sentence of intent, not a tidier list.
+
 Scoring, calendar compliance, delegation tracking, and refocus directives are standalone skills you invoke when you want them — `/review` no longer orchestrates them. Either way: zero flattery. Think trusted board advisor, not cheerful assistant.
 
 ## Commands
@@ -18,6 +20,7 @@ Scoring, calendar compliance, delegation tracking, and refocus directives are st
 | `/reflect` | Guided reflection on a specific decision, event, or meeting. Reads context and asks hard questions. |
 | `/goals` | Review and update quarterly objectives (rocks). Check alignment between stated priorities and actual time allocation. |
 | `/plan` | Generate a weekly execution plan. Cross-references quarterly objectives, calendar availability, Asana tasks, and calendar rules to produce a day-by-day schedule with task assignments mapped to protected blocks and hat targets. |
+| `/essential` | Filter goals, plans, or one opportunity through the Essentialism framework. Establishes a single criterion, scores every commitment against it, cuts everything under 90, then forces the trade-offs and one measurable essential intent. Four modes — quarter, week, day, gate — detected from what you pass it. |
 
 ## Skills
 
@@ -64,7 +67,7 @@ Scoring, calendar compliance, delegation tracking, and refocus directives are st
    |---------|---------------------|
    | `/plan` | Asana (task fetch) + Google Calendar (availability) |
    | `/review` | Google Calendar (time allocation) + Granola (meeting transcripts) + Asana (completed tasks, optional). Sections 5–6 additionally need the `xurl` CLI — not an MCP server, see step 4 |
-   | `/reflect`, `/goals` | None required (operate on local files) |
+   | `/reflect`, `/goals`, `/essential` | None required (operate on local files) |
 
    `/review` degrades rather than fails: Asana's search endpoint is premium-gated, so when the completed-tasks query returns `payment_required` the command derives completed tasks from the daily notes' `✅ Cleared` markers and flags that section ⚠️. A calendar or Granola outage falls back to the daily notes' `### Calendar` and `# Meetings` sections the same way. Only a missing `rocks.yaml` stops it.
 
@@ -114,23 +117,25 @@ Scoring, calendar compliance, delegation tracking, and refocus directives are st
    - `calendar-rules.yaml` — protected blocks, day themes, meeting limits. Used by `/plan` and the `calendar-audit` skill.
    - `delegation-log.yaml` — starts empty, populated by the `delegation-tracker` skill.
 
-   Then fill in the reference files used by `/reflect`, `/goals`, and the ad-hoc scoring skills:
+   Then fill in the reference files used by `/reflect`, `/goals`, `/essential`, and the ad-hoc scoring skills:
 
    - `references/values.md` — core philosophy and decision-making priorities
    - `references/thinking-style.md` — how you reason, your biases, depth calibration
    - `references/leadership-framework.md` — your CEO model: role hats, time targets, delegation philosophy
+   - `references/essentialism-framework.md` — the focus lens `/essential` runs on: power law, the 90% rule, essential intent, and a table mapping observable signals to interventions. Unlike the three above, this one ships filled in — edit it only to sharpen the criteria against your own context
 
    Finally, point `commands/manifest.yaml` at the locations you chose if they differ from the defaults. Every path the plugin touches is resolved through that manifest — nothing is hardcoded — so a differently-shaped vault only needs the manifest edited, not the commands.
 
    | Manifest key | Required | Used by |
    |---|---|---|
-   | `rocks` | **yes** | `/review`, `/plan`, `/goals`, scorecard |
+   | `rocks` | **yes** | `/review`, `/plan`, `/goals`, scorecard, `/essential` (optional there) |
    | `calendar-rules` | no | `/plan`, `calendar-audit` |
    | `delegation-log` | no | `delegation-tracker` |
-   | `values` | no | `/goals`, scorecard |
+   | `values` | no | `/goals`, scorecard, `/essential` |
    | `thinking-style` | no | `/reflect` |
    | `leadership-framework` | no | `/plan`, scorecard, `calendar-audit` |
-   | `weekly-plans` | no | `/review` (save location, follower baseline), `/plan` |
+   | `essentialism-framework` | **yes**, for `/essential` | `/essential` |
+   | `weekly-plans` | no | `/review` (save location, follower baseline), `/plan`, `/essential` (week mode) |
    | `quarterly-plan` | no | `/plan` |
    | `tweets` | no | `/review` §5–§6 post wikilinks |
 
@@ -151,8 +156,9 @@ Scoring, calendar compliance, delegation tracking, and refocus directives are st
 7. **First run.**
 
    ```
-   /goals    # set or review your quarterly objectives
-   /plan     # generate a weekly schedule grounded in those objectives
+   /goals       # set or review your quarterly objectives
+   /essential   # cut that list down to what you will actually go big on
+   /plan        # generate a weekly schedule grounded in what survived
    ```
 
    Run `/review` at the end of any window (week, month, quarter) to see what actually happened: where the hours went, which rocks moved, what you were thinking about, how your posting landed, and what the five lenses together say when read as one story.
