@@ -14,7 +14,7 @@ subagent_type: general-purpose
 
 **Dispatched by:** `/review` command
 
-**Consumption note:** `/review` uses four of the slices below — **calendar events** (§1), **completed tasks** (§3), **daily-note journaling** (§8a), and **meeting notes** (§4). It ignores emails, overdue tasks, weekly/quarterly plans, and company notes. Keep returning all of them anyway: the ad-hoc `performance-scorecard`, `calendar-audit`, and `refocus-directive` skills depend on the full set. Fetch every source independently so an unused slice failing never blocks a used one.
+**Consumption note:** `/review` uses five of the slices below — **calendar events** (§1), **completed tasks** (§3), **daily-note journaling** (§8a), **meeting notes** (§4), and the **daily-note `# Files Created` blocks** (§5). It ignores emails, overdue tasks, weekly/quarterly plans, and company notes. Keep returning all of them anyway: the ad-hoc `performance-scorecard`, `calendar-audit`, and `refocus-directive` skills depend on the full set. Fetch every source independently so an unused slice failing never blocks a used one.
 
 ---
 
@@ -84,6 +84,10 @@ List daily log files in `{vault_root}/{daily_logs_folder}` for dates in the wind
 - Check whether it exists
 - Brief summary if present (first few lines after briefing section)
 - The `### Calendar` briefing and `# Meetings` links verbatim — these are the fallback source when the Google Calendar or Granola MCP server is down
+- The full content under the `# Files Created` heading, **verbatim** (match the heading case-insensitively; stop at the next H1 or EOF). This block is written by `/cob` Phase B1 and is the only record of what the vault gained that day — `/review` §7 aggregates it across the window. Return the lines exactly as written, including folder group headers, wikilink aliases, and any collapsed count lines (`- 21 posts propios de X (semana 10–16 oct)`). Do **not** normalise, re-alias, repair or resolve the links, and do **not** substitute a filesystem sweep for a missing block — distinguish the three states and return which one applies:
+  - section present with entries → the verbatim block
+  - section present reading `*No new files today.*` → `empty`
+  - no `# Files Created` heading at all → `absent` (a pre-Phase-B1 note, or a day `/cob` never ran). `empty` and `absent` are different facts and `/review` reports them differently.
 
 ### 6. Weekly Plan(s)
 
@@ -167,7 +171,8 @@ Window: {start_date} → {end_date} ({N} days)
 ### Daily Logs
 - Logs found: N of {window_days}
 - Missing dates: [list]
-- Per log: [{basename `DD-MM-YYYY`, brief summary, `### Calendar` briefing, `# Meetings` links}]
+- Per log: [{basename `DD-MM-YYYY`, brief summary, `### Calendar` briefing, `# Meetings` links, files_created: {state: entries|empty|absent, block: verbatim text or null}}]
+- Files Created: {N} days with entries / {N} empty / {N} absent
 
 ### Weekly Plans
 - Plans found: N (covering weeks: [list of week ranges])
@@ -215,4 +220,4 @@ Window: {start_date} → {end_date} ({N} days)
 - If a source fails: note with ⚠️, continue with remaining sources
 - Always produce a report, even if all sources failed
 - Do NOT analyze or score — just fetch and structure data
-- Prioritize the four slices `/review` consumes (calendar, completed tasks, journaling, meeting notes). If time or quota is short, return those complete rather than all eight partial.
+- Prioritize the five slices `/review` consumes (calendar, completed tasks, journaling, meeting notes, daily-note `# Files Created`). If time or quota is short, return those complete rather than all eight partial.
